@@ -166,14 +166,37 @@ void CTexturedRectMesh::ReleaseUploadBuffers()
 	m_pd3dTextureCoord0UploadBuffer = NULL;
 }
 
+//pd3dCommandList->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
+//
+//D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[4] = { m_d3dPositionBufferView, m_d3dColorBufferView, m_d3dTextureCoord0BufferView, m_d3dTextureCoord1BufferView };
+//pd3dCommandList->IASetVertexBuffers(m_nSlot, 4, pVertexBufferViews);
+//
+//if ((m_nSubMeshes > 0) && (nSubSet < m_nSubMeshes))
+//{
+//	pd3dCommandList->IASetIndexBuffer(&(m_pd3dSubSetIndexBufferViews[nSubSet]));
+//	pd3dCommandList->DrawIndexedInstanced(m_pnSubSetIndices[nSubSet], 1, 0, 0, 0);
+//}
+//else
+//{
+//	pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
+//}
+
+// 여기서 오류
+/*
+D3D12 WARNING: ID3D12CommandList::DrawInstanced: Input vertex slot 0 has stride 12 which is less than the minimum stride logically expected from the current Input Layout (20 bytes). This is OK, as hardware is perfectly capable of reading overlapping data. However the developer probably did not intend to make use of this behavior.  [ EXECUTION WARNING #209: COMMAND_LIST_DRAW_VERTEX_BUFFER_STRIDE_TOO_SMALL]
+D3D12 WARNING: ID3D12CommandList::DrawInstanced: Vertex Buffer at the input vertex slot 0 is not big enough for what the Draw*() call expects to traverse. This is OK, as reading off the end of the Buffer is defined to return 0. However the developer probably did not intend to make use of this behavior.  [ EXECUTION WARNING #210: COMMAND_LIST_DRAW_VERTEX_BUFFER_TOO_SMALL]
+
+*/
 void CTexturedRectMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, int nSubSet)
 {
-	pd3dCommandList->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
+	pd3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[2] = { m_d3dPositionBufferView, m_d3dTextureCoord0BufferView };
+	D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[2] = {m_d3dPositionBufferView, m_d3dTextureCoord0BufferView};
 	pd3dCommandList->IASetVertexBuffers(m_nSlot, 2, pVertexBufferViews);
 
-	pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
+	pd3dCommandList->DrawInstanced(6, 2, m_nOffset, 0); // 2가 맞을까?
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
