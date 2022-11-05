@@ -300,11 +300,11 @@ VS_WATER_OUTPUT VSRippleWater(VS_WATER_INPUT input)
 	//	input.position.y += sin(gfCurrentTime * 1.0f + (((input.position.x * input.position.x) + (input.position.z * input.position.z)) - (1000 * 1000) * 2) * 0.0001f) * 10.0f;
 
 	//	input.position.y += sin(gfCurrentTime * 1.0f + (((input.position.x * input.position.x) + (input.position.z * input.position.z))) * 0.0001f) * 10.0f;
-	input.position.y += sin(gfCurrentTime * 0.5f + input.position.x * 0.01f) * 45.0f + cos(gfCurrentTime * 1.0f + input.position.z * 0.01f) * 35.0f;
-	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
+		input.position.y += sin(gfCurrentTime * 0.5f + input.position.x * 0.01f) * 45.0f + cos(gfCurrentTime * 1.0f + input.position.z * 0.01f) * 35.0f;
+		output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
 	//	output.color = input.color;
-	output.color = (input.position.y / 200.0f) + 0.55f;
-	output.uv0 = input.uv0;
+		output.color = (input.position.y / 200.0f) + 0.55f;
+		output.uv0 = input.uv0;
 	//	output.uv1 = input.uv1;
 
 	return(output);
@@ -314,11 +314,11 @@ float4 PSRippleWater(VS_WATER_OUTPUT input) : SV_TARGET
 {
 	//	float4 cBaseTexColor = gtxtWaterBaseTexture.Sample(gSamplerState, input.uv0);
 		float4 cBaseTexColor = gtxtWaterBaseTexture.Sample(gssWrap, float2(input.uv0.x, input.uv0.y - abs(sin(gfCurrentTime)) * 0.0151f));
-		//	float4 cColor = input.color * 0.3f + cBaseTexColor * 0.7f;
-			float4 cDetailTexColor = gtxtWaterDetailTexture.Sample(gssWrap, input.uv0 * 10.0f);
-			float4 cColor = (cBaseTexColor * 0.3f + cDetailTexColor * 0.7f) + float4(0.0f, 0.0f, 0.15f, 0.0f);
-			cColor *= input.color;
+	//	float4 cColor = input.color * 0.3f + cBaseTexColor * 0.7f;
+		float4 cDetailTexColor = gtxtWaterDetailTexture.Sample(gssWrap, input.uv0 * 10.0f);
+		float4 cColor = (cBaseTexColor * 0.3f + cDetailTexColor * 0.7f) + float4(0.0f, 0.0f, 0.15f, 0.0f);
+		cColor *= input.color;
 
-			return(cColor);
+		return(cColor);
 }
 
