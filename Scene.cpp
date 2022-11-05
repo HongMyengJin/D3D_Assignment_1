@@ -70,9 +70,17 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 
 	m_pSkyBox = new CSkyBox(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 
+
+
 	XMFLOAT3 xmf3Scale(18.0f, 6.0f, 18.0f);
 	XMFLOAT4 xmf4Color(0.0f, 0.5f, 0.0f, 0.0f);
 	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, _T("Image/HeightMap.raw"), 257, 257, 257, 257, xmf3Scale, xmf4Color);
+
+
+	XMFLOAT3 xmf3WaterScale(1.0f, 1.0f, 1.0f);
+	XMFLOAT4 xmf4WaterColor(0.0f, 0.0f, 0.7f, 1.0f);
+
+	m_pRippleWater = new CRippleWater(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, 2570 * 2, 2570 * 2, 2570 * 2, 2570 * 2, xmf3WaterScale, xmf4WaterColor);
 
 	m_nShaders = 1;
 	m_ppShaders = new CShader*[m_nShaders];
@@ -112,6 +120,8 @@ void CScene::ReleaseObjects()
 
 	if (m_pTerrain) delete m_pTerrain;
 	if (m_pSkyBox) delete m_pSkyBox;
+
+	if (m_pRippleWater) delete m_pRippleWater;
 
 	if (m_ppGameObjects)
 	{
@@ -334,6 +344,7 @@ void CScene::ReleaseUploadBuffers()
 {
 	if (m_pTerrain) m_pTerrain->ReleaseUploadBuffers();
 	if (m_pSkyBox) m_pSkyBox->ReleaseUploadBuffers();
+	if (m_pRippleWater) m_pRippleWater->ReleaseUploadBuffers();
 
 	for (int i = 0; i < m_nShaders; i++) 
 		m_ppShaders[i]->ReleaseUploadBuffers();
@@ -404,10 +415,12 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 
 	if (m_pSkyBox) m_pSkyBox->Render(pd3dCommandList, pCamera);
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
+	if (m_pRippleWater) 
+		m_pRippleWater->Render(pd3dCommandList, pCamera);
 
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
-	for (int i = 0; i < m_nShaders; i++) 
-		if (m_ppShaders[i]) 
-			m_ppShaders[i]->Render(pd3dCommandList, pCamera);
+	//for (int i = 0; i < m_nShaders; i++) 
+	//	if (m_ppShaders[i]) 
+	//		m_ppShaders[i]->Render(pd3dCommandList, pCamera);
 }
 

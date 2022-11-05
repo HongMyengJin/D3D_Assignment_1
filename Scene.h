@@ -82,6 +82,8 @@ public:
 
 	XMFLOAT4							m_xmf4GlobalAmbient;
 
+	CRippleWater*						m_pRippleWater = NULL;
+
 	ID3D12Resource						*m_pd3dcbLights = NULL;
 	LIGHTS								*m_pcbMappedLights = NULL;
 };

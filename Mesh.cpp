@@ -52,14 +52,24 @@ void CMesh::Render(ID3D12GraphicsCommandList *pd3dCommandList, int nSubSet)
 
 	pd3dCommandList->IASetVertexBuffers(m_nSlot, 1, &m_d3dPositionBufferView);
 
-	if ((m_nSubMeshes > 0) && (nSubSet < m_nSubMeshes))
+
+	if (m_pd3dIndexBuffer)
 	{
-		pd3dCommandList->IASetIndexBuffer(&(m_pd3dSubSetIndexBufferViews[nSubSet]));
-		pd3dCommandList->DrawIndexedInstanced(m_pnSubSetIndices[nSubSet], 1, 0, 0, 0);
+		pd3dCommandList->IASetIndexBuffer(&m_pd3dIndexBufferView);
+		pd3dCommandList->DrawIndexedInstanced(m_nIndices, 1, 0, 0, 0);
 	}
 	else
 	{
-		pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
+
+		if ((m_nSubMeshes > 0) && (nSubSet < m_nSubMeshes))
+		{
+			pd3dCommandList->IASetIndexBuffer(&(m_pd3dSubSetIndexBufferViews[nSubSet]));
+			pd3dCommandList->DrawIndexedInstanced(m_pnSubSetIndices[nSubSet], 1, 0, 0, 0);
+		}
+		else
+		{
+			pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
+		}
 	}
 }
 
@@ -799,4 +809,128 @@ void CSpriteMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 	{
 		pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
 	}
+}
+
+CGridMesh::CGridMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, int xStart, int zStart, int nWidth, int nLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color, void* pContext) : CMesh(pd3dDevice, pd3dCommandList)
+{
+	m_nVertices = nWidth * nLength;
+	m_nOffset = 0;
+	m_nSlot = 0;
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+
+	m_nWidth = nWidth;
+	m_nLength = nLength;
+	m_xmf3Scale = xmf3Scale;
+
+	CDiffusedTexturedVertex* pVertices = new CDiffusedTexturedVertex[m_nVertices];
+
+	CHeightMapImage* pHeightMapImage = (CHeightMapImage*)pContext;
+	int cxHeightMap = m_nWidth;
+	int czHeightMap = m_nLength;
+	if (pHeightMapImage)
+	{
+		cxHeightMap = pHeightMapImage->GetRawImageWidth();
+		czHeightMap = pHeightMapImage->GetRawImageLength();
+	}
+
+	float fHeight = 0.0f, fMinHeight = +FLT_MAX, fMaxHeight = -FLT_MAX;
+	for (int i = 0, z = zStart; z < (zStart + nLength); z++)
+	{
+		for (int x = xStart; x < (xStart + nWidth); x++, i++)
+		{
+			fHeight = OnGetHeight(x, z, pContext);
+			pVertices[i].m_xmf3Position = XMFLOAT3((x * m_xmf3Scale.x), fHeight, (z * m_xmf3Scale.z));
+			pVertices[i].m_xmf4Diffuse = Vector4::Add(OnGetColor(x, z, pContext), xmf4Color);
+			pVertices[i].m_xmf2TexCoord = XMFLOAT2(float(x) / float(m_nWidth - 1), float(m_nLength - 1 - z) / float(m_nLength - 1));
+			if (fHeight < fMinHeight) fMinHeight = fHeight;
+			if (fHeight > fMaxHeight) fMaxHeight = fHeight;
+		}
+	}
+
+	m_pd3dPositionBuffer = CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, sizeof(CDiffusedTexturedVertex) * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dPositionUploadBuffer);
+
+	m_d3dPositionBufferView.BufferLocation = m_pd3dPositionBuffer->GetGPUVirtualAddress();
+	m_d3dPositionBufferView.StrideInBytes = sizeof(CDiffusedTexturedVertex);
+	m_d3dPositionBufferView.SizeInBytes = sizeof(CDiffusedTexturedVertex) * m_nVertices;
+
+	delete[] pVertices;
+
+	m_nIndices = ((nWidth * 2) * (nLength - 1)) + ((nLength - 1) - 1);
+	UINT* pnIndices = new UINT[m_nIndices];
+
+	for (int j = 0, z = 0; z < nLength - 1; z++)
+	{
+		if ((z % 2) == 0)
+		{
+			for (int x = 0; x < nWidth; x++)
+			{
+				if ((x == 0) && (z > 0)) pnIndices[j++] = (UINT)(x + (z * nWidth));
+				pnIndices[j++] = (UINT)(x + (z * nWidth));
+				pnIndices[j++] = (UINT)((x + (z * nWidth)) + nWidth);
+			}
+		}
+		else
+		{
+			for (int x = nWidth - 1; x >= 0; x--)
+			{
+				if (x == (nWidth - 1)) pnIndices[j++] = (UINT)(x + (z * nWidth));
+				pnIndices[j++] = (UINT)(x + (z * nWidth));
+				pnIndices[j++] = (UINT)((x + (z * nWidth)) + nWidth);
+			}
+		}
+	}
+
+	m_pd3dIndexBuffer = CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices, sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+
+	m_pd3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_pd3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_pd3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+
+	delete[] pnIndices;
+
+
+
+}
+
+CGridMesh::~CGridMesh()
+{
+}
+
+float CGridMesh::OnGetHeight(int x, int z, void* pContext)
+{
+	float fHeight = 0.0f;
+	CHeightMapImage* pHeightMapImage = (CHeightMapImage*)pContext;
+	if (pHeightMapImage)
+	{
+
+		BYTE* pHeightMapPixels = pHeightMapImage->GetRawImagePixels();
+		XMFLOAT3 xmf3Scale = pHeightMapImage->GetScale();
+		int nWidth = pHeightMapImage->GetRawImageWidth();
+		fHeight = pHeightMapPixels[x + (z * nWidth)] * xmf3Scale.y;
+	}
+
+	return(fHeight);
+}
+
+XMFLOAT4 CGridMesh::OnGetColor(int x, int z, void* pContext)
+{
+	XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	CHeightMapImage* pHeightMapImage = (CHeightMapImage*)pContext;
+	if (pHeightMapImage)
+	{
+		XMFLOAT3 xmf3LightDirection = XMFLOAT3(-1.0f, 1.0f, 1.0f);
+		xmf3LightDirection = Vector3::Normalize(xmf3LightDirection);
+		XMFLOAT3 xmf3Scale = pHeightMapImage->GetScale();
+		XMFLOAT4 xmf4IncidentLightColor(0.9f, 0.8f, 0.4f, 1.0f);
+		float fScale = Vector3::DotProduct(pHeightMapImage->GetHeightMapNormal(x, z), xmf3LightDirection);
+		fScale += Vector3::DotProduct(pHeightMapImage->GetHeightMapNormal(x + 1, z), xmf3LightDirection);
+		fScale += Vector3::DotProduct(pHeightMapImage->GetHeightMapNormal(x + 1, z + 1), xmf3LightDirection);
+		fScale += Vector3::DotProduct(pHeightMapImage->GetHeightMapNormal(x, z + 1), xmf3LightDirection);
+		fScale = (fScale / 4.0f) + 0.05f;
+		if (fScale > 1.0f) fScale = 1.0f;
+		if (fScale < 0.25f) fScale = 0.25f;
+		xmf4Color = Vector4::Multiply(fScale, xmf4IncidentLightColor);
+	}
+
+	return(xmf4Color);
 }
