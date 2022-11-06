@@ -201,7 +201,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 
 	pd3dDescriptorRanges[10].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	pd3dDescriptorRanges[10].NumDescriptors = 2;
-	pd3dDescriptorRanges[10].BaseShaderRegister = 3; //t3: gtxtWaterBaseTexture, gtxtWaterDetailTexture
+	pd3dDescriptorRanges[10].BaseShaderRegister = 3; //t3: gtxtWaterBaseTexture t4 gtxtWaterDetailTexture
 	pd3dDescriptorRanges[10].RegisterSpace = 0;
 	pd3dDescriptorRanges[10].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
@@ -283,6 +283,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[14].Constants.ShaderRegister = 0;
 	pd3dRootParameters[14].Constants.RegisterSpace = 0;
 	pd3dRootParameters[14].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
 
 	D3D12_STATIC_SAMPLER_DESC pd3dSamplerDescs[2];
 

@@ -281,8 +281,7 @@ void CMaterial::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList
 
 	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 1, &m_nType, 32);
 
-	if (m_pTexture) 
-		m_pTexture->UpdateShaderVariables(pd3dCommandList);
+	if (m_pTexture) m_pTexture->UpdateShaderVariables(pd3dCommandList);
 }
 
 void CMaterial::ReleaseShaderVariables()
@@ -1127,7 +1126,7 @@ CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
-	CTexture* pWaterTexture = new CTexture(2, RESOURCE_TEXTURE2D, 0, 13);
+	CTexture* pWaterTexture = new CTexture(2, RESOURCE_TEXTURE2D, 0, 1);
 
 	pWaterTexture->LoadTextureFromDDSFile(pd3dDevice, pd3dCommandList, L"Image/Water_Detail_Texture_0.dds", RESOURCE_TEXTURE2D, 0);
 	pWaterTexture->LoadTextureFromDDSFile(pd3dDevice, pd3dCommandList, L"Image/Water_Base_Texture_0.dds", RESOURCE_TEXTURE2D, 1);
