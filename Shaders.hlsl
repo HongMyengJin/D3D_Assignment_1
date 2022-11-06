@@ -10,7 +10,6 @@ cbuffer cbFrameworkInfo : register(b0)
 {
 	float 		gfCurrentTime;
 	float		gfElapsedTime;
-	float2		gf2CursorPos;
 };
 
 

@@ -34,6 +34,8 @@ public:
     void AnimateObjects();
     void FrameAdvance();
 
+	void UpdateShaderVariables();
+
 	void WaitForGpuComplete();
 	void MoveToNextFrame();
 

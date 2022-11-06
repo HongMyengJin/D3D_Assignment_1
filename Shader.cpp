@@ -190,9 +190,9 @@ void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *
 	m_d3dPipelineStateDesc.pRootSignature = pd3dGraphicsRootSignature;
 	m_d3dPipelineStateDesc.VS = CreateVertexShader();
 	m_d3dPipelineStateDesc.PS = CreatePixelShader();
-	m_d3dPipelineStateDesc.RasterizerState = CreateRasterizerState();
-	m_d3dPipelineStateDesc.BlendState = CreateBlendState();
-	m_d3dPipelineStateDesc.DepthStencilState = CreateDepthStencilState();
+	m_d3dPipelineStateDesc.RasterizerState = CreateRasterizerState(); // 확인 완료
+	m_d3dPipelineStateDesc.BlendState = CreateBlendState(); // 확인 완료
+	m_d3dPipelineStateDesc.DepthStencilState = CreateDepthStencilState(); // 확인 완료
 	m_d3dPipelineStateDesc.InputLayout = CreateInputLayout();
 	m_d3dPipelineStateDesc.SampleMask = UINT_MAX;
 	m_d3dPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -203,6 +203,10 @@ void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *
 	m_d3dPipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	HRESULT hResult = pd3dDevice->CreateGraphicsPipelineState(&m_d3dPipelineStateDesc, __uuidof(ID3D12PipelineState), (void **)&m_ppd3dPipelineStates[0]);
+
+
+	printf("0x%08x", hResult);
+
 }
 
 void CShader::CreateCbvSrvDescriptorHeaps(ID3D12Device *pd3dDevice, int nConstantBufferViews, int nShaderResourceViews)
@@ -275,7 +279,8 @@ void CShader::CreateShaderResourceView(ID3D12Device* pd3dDevice, CTexture* pText
 
 void CShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList, int nPipelineState)
 {
-	if (m_ppd3dPipelineStates) pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[nPipelineState]);
+	if (m_ppd3dPipelineStates) 
+		pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[nPipelineState]);
 
 	if (m_pd3dCbvSrvDescriptorHeap) pd3dCommandList->SetDescriptorHeaps(1, &m_pd3dCbvSrvDescriptorHeap);
 }
@@ -1024,7 +1029,7 @@ CRippleWaterShader::~CRippleWaterShader()
 {
 }
 
-D3D12_INPUT_LAYOUT_DESC CRippleWaterShader::CreateInputLayout()
+D3D12_INPUT_LAYOUT_DESC CRippleWaterShader::CreateInputLayout() // 뭔가 수정해야겠다.
 {
 	UINT nInputElementDescs = 3;
 	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
@@ -1041,6 +1046,51 @@ D3D12_INPUT_LAYOUT_DESC CRippleWaterShader::CreateInputLayout()
 	return(d3dInputLayoutDesc);
 }
 
+//LPCSTR SemanticName;
+//UINT SemanticIndex;
+//DXGI_FORMAT Format;
+//UINT InputSlot;
+//UINT AlignedByteOffset;
+//D3D12_INPUT_CLASSIFICATION InputSlotClass;
+//UINT InstanceDataStepRate;
+//	} 	D3D12_INPUT_ELEMENT_DESC;
+//struct VS_WATER_INPUT
+//{
+//	float3 position : POSITION;
+//	float4 color : COLOR;
+//	float2 uv0 : TEXCOORD0;
+//	//	float2 uv1 : TEXCOORD1;
+//};
+//
+//struct VS_WATER_OUTPUT
+//{
+//	float4 position : SV_POSITION;
+//	float4 color : COLOR;
+//	float2 uv0 : TEXCOORD0;
+//	//	float2 uv1 : TEXCOORD1;
+//};
+//
+//
+//pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+//pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+//pd3dInputElementDescs[2] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+//pd3dInputElementDescs[3] = { "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+//struct VS_TERRAIN_INPUT
+//{
+//	float3 position : POSITION;
+//	float4 color : COLOR;
+//	float2 uv0 : TEXCOORD0;
+//	float2 uv1 : TEXCOORD1;
+//};
+//
+//struct VS_TERRAIN_OUTPUT
+//{
+//	float4 position : SV_POSITION;
+//	float4 color : COLOR;
+//	float2 uv0 : TEXCOORD0;
+//	float2 uv1 : TEXCOORD1;
+//};
+
 D3D12_SHADER_BYTECODE CRippleWaterShader::CreateVertexShader()
 {
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSRippleWater", "vs_5_1", &m_pd3dVertexShaderBlob));
@@ -1053,7 +1103,17 @@ D3D12_SHADER_BYTECODE CRippleWaterShader::CreatePixelShader()
 
 void CRippleWaterShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
+
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+
 	CShader::CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+
+
+	if (m_pd3dVertexShaderBlob) m_pd3dVertexShaderBlob->Release();
+	if (m_pd3dPixelShaderBlob) m_pd3dPixelShaderBlob->Release();
+
+	if (m_d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[] m_d3dPipelineStateDesc.InputLayout.pInputElementDescs;
 }
 
 D3D12_RASTERIZER_DESC CRippleWaterShader::CreateRasterizerState()

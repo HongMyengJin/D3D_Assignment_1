@@ -66,6 +66,12 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 {
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
 
+
+	XMFLOAT3 xmf3WaterScale(1.0f, 1.0f, 1.0f);
+	XMFLOAT4 xmf4WaterColor(0.5f, 0.0f, 0.7f, 1.0f);
+
+	m_pRippleWater = new CRippleWater(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, 2570 * 2, 2570 * 2, 2570 * 2, 2570 * 2, xmf3WaterScale, xmf4WaterColor);
+
 	BuildDefaultLightsAndMaterials();
 
 	m_pSkyBox = new CSkyBox(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
@@ -76,11 +82,6 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	XMFLOAT4 xmf4Color(0.0f, 0.5f, 0.0f, 0.0f);
 	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, _T("Image/HeightMap.raw"), 257, 257, 257, 257, xmf3Scale, xmf4Color);
 
-
-	XMFLOAT3 xmf3WaterScale(1.0f, 1.0f, 1.0f);
-	XMFLOAT4 xmf4WaterColor(0.0f, 0.0f, 0.7f, 1.0f);
-
-	m_pRippleWater = new CRippleWater(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, 2570 * 2, 2570 * 2, 2570 * 2, 2570 * 2, xmf3WaterScale, xmf4WaterColor);
 
 	m_nShaders = 1;
 	m_ppShaders = new CShader*[m_nShaders];
@@ -278,7 +279,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dRootParameters[13].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	pd3dRootParameters[14].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	pd3dRootParameters[14].Constants.Num32BitValues = 4; //Time, ElapsedTime, xCursor, yCursor
+	pd3dRootParameters[14].Constants.Num32BitValues = 2; //Time, ElapsedTime
 	pd3dRootParameters[14].Constants.ShaderRegister = 0;
 	pd3dRootParameters[14].Constants.RegisterSpace = 0;
 	pd3dRootParameters[14].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -418,9 +419,12 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	}
 }
 
-void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
+void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, float fCurrentTime, float fElapsedTime)
 {
 	if (m_pd3dGraphicsRootSignature) pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
+
+	pd3dCommandList->SetGraphicsRoot32BitConstants(14, 1, &fCurrentTime, 0);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(14, 1, &fElapsedTime, 1);
 
 	pCamera->SetViewportsAndScissorRects(pd3dCommandList);
 	pCamera->UpdateShaderVariables(pd3dCommandList);
@@ -440,4 +444,5 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	//	if (m_ppShaders[i]) 
 	//		m_ppShaders[i]->Render(pd3dCommandList, pCamera);
 }
+
 
