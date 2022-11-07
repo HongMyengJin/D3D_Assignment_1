@@ -1148,6 +1148,7 @@ CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 	SetCbvGPUDescriptorHandle(pRippleWaterShader->GetGPUCbvDescriptorStartHandle());
 
 	SetShader(0, pRippleWaterShader);
+
 }
 
 CRippleWater::~CRippleWater()
