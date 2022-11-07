@@ -25,6 +25,7 @@ cbuffer cbGameObjectInfo : register(b2)
 	matrix		gmtxGameObject : packoffset(c0);
 	MATERIAL	gMaterial : packoffset(c4);
 	uint		gnTexturesMask : packoffset(c8);
+	matrix		gmtxTexture : packoffset(c12);
 };
 
 #include "Light.hlsl"
@@ -193,6 +194,16 @@ float4 PSTextured(VS_SPRITE_TEXTURED_OUTPUT input) : SV_TARGET
 	return(cColor);
 }
 
+VS_SPRITE_TEXTURED_OUTPUT VSSpriteAnimation(VS_SPRITE_TEXTURED_INPUT input)
+{
+	VS_SPRITE_TEXTURED_OUTPUT output;
+
+	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
+	output.uv = mul(float3(input.uv, 1.0f), (float3x3)(gmtxTexture)).xy;
+
+	return(output);
+}
+
 /*
 float4 PSTextured(VS_SPRITE_TEXTURED_OUTPUT input, uint nPrimitiveID : SV_PrimitiveID) : SV_TARGET
 {
@@ -320,4 +331,5 @@ float4 PSRippleWater(VS_WATER_OUTPUT input) : SV_TARGET
 
 			return(cColor);
 }
+
 

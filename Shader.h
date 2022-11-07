@@ -17,6 +17,13 @@ private:
 	int									m_nReferences = 0;
 
 protected:
+	bool							m_bActive = true;
+
+public:
+	void SetActive(bool bActive) { m_bActive = bActive; }
+	bool GetActive() { return(m_bActive); }
+
+protected:
 	ID3DBlob*							m_pd3dVertexShaderBlob = NULL;
 	ID3DBlob*							m_pd3dPixelShaderBlob = NULL;
 
@@ -199,7 +206,7 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState);
 
 protected:
-	CGrassObject** m_ppObjects = 0;
+	CGameObject** m_ppObjects = 0;
 	int								m_nObjects = 0;
 
 	ID3D12Resource* m_pd3dcbGameObjects = NULL;
@@ -227,6 +234,27 @@ public:
 	CMaterial* m_ppFlowerMaterials[2] = { NULL, NULL };
 #endif
 };
+
+class CMultiSpriteObjectsShader : public CSpriteObjectsShader
+{
+public:
+	CMultiSpriteObjectsShader();
+	virtual ~CMultiSpriteObjectsShader();
+
+	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
+	virtual D3D12_BLEND_DESC CreateBlendState();
+
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+
+	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext = NULL);
+	virtual void ReleaseObjects();
+
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState);
+
+	virtual void ReleaseUploadBuffers();
+};
+
+
 ////////////////////////////////////////
 class CRippleWaterShader : public CTexturedShader
 {
