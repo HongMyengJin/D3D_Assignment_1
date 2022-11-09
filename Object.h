@@ -366,7 +366,7 @@ public:
 	CGrassObject();
 	virtual ~CGrassObject();
 
-	virtual void Animate(float fTimeElapsed);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
 	float m_fRotationAngle = 0.0f;
@@ -385,8 +385,8 @@ public:
 	float m_fSpeed = 0.1f;
 	float m_fTime = 0.0f;
 
-
-	virtual void Animate(float fTimeElapsed);
+	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
 };
 
 

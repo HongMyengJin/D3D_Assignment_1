@@ -36,6 +36,8 @@ CTexture::CTexture(int nTextures, UINT nTextureType, int nSamplers, int nRootPar
 	m_nRows = nRows;
 	m_nCols = nCols;
 
+	m_xmf4x4Texture = Matrix4x4::Identity();
+
 	m_nSamplers = nSamplers;
 	if (m_nSamplers > 0) m_pd3dSamplerGpuDescriptorHandles = new D3D12_GPU_DESCRIPTOR_HANDLE[m_nSamplers];
 
@@ -248,15 +250,15 @@ D3D12_SHADER_RESOURCE_VIEW_DESC CTexture::GetShaderResourceViewDesc(int nIndex)
 void CTexture::AnimateRowColumn(float fTime)
 {
 	//	m_xmf4x4Texture = Matrix4x4::Identity();
-	m_xmf4x4Texture._11 = 1.0f / float(m_nRows);
-	m_xmf4x4Texture._22 = 1.0f / float(m_nCols);
-	m_xmf4x4Texture._31 = float(m_nRow) / float(m_nRows);
-	m_xmf4x4Texture._32 = float(m_nCol) / float(m_nCols);
-	if (fTime == 0.0f)
-	{
-		if (++m_nCol == m_nCols) { m_nRow++; m_nCol = 0; }
-		if (m_nRow == m_nRows) m_nRow = 0;
-	}
+	//m_xmf4x4Texture._11 = 1.0f / float(m_nRows);
+	//m_xmf4x4Texture._22 = 1.0f / float(m_nCols);
+	//m_xmf4x4Texture._31 = float(m_nRow) / float(m_nRows);
+	//m_xmf4x4Texture._32 = float(m_nCol) / float(m_nCols);
+	//if (fTime == 0.0f)
+	//{
+	//	if (++m_nCol == m_nCols) { m_nRow++; m_nCol = 0; }
+	//	if (m_nRow == m_nRows) m_nRow = 0;
+	//}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1040,7 +1042,7 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	pTerrainShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 	pTerrainShader->CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 3);
 	pTerrainShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
-	pTerrainShader->CreateShaderResourceViews(pd3dDevice, pTerrainTexture, 0, 11);
+	pTerrainShader->CreateShaderResourceViews(pd3dDevice, pTerrainTexture, 0, PARAMETER_TERRAIN_TEXTURE);  // 11 -> 
 
 	CMaterial* pTerrainMaterial = new CMaterial();
 	pTerrainMaterial->SetTexture(pTerrainTexture);
@@ -1063,7 +1065,7 @@ CGrassObject::~CGrassObject()
 {
 }
 
-void CGrassObject::Animate(float fTimeElapsed)
+void CGrassObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_fRotationAngle <= -1.5f) m_fRotationDelta = 1.0f;
 	if (m_fRotationAngle >= +1.5f) m_fRotationDelta = -1.0f;
@@ -1124,7 +1126,18 @@ CMultiSpriteObject::~CMultiSpriteObject()
 {
 }
 
-void CMultiSpriteObject::Animate(float fTimeElapsed)
+void CMultiSpriteObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World)
+{
+
+	CGameObject::UpdateShaderVariable(pd3dCommandList, pxmf4x4World);
+
+	XMFLOAT4X4 xmf4x4World;
+	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&(m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture))));
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);
+
+}
+
+void CMultiSpriteObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_ppMaterials && m_ppMaterials[0] && m_ppMaterials[0]->m_pTexture)
 	{
@@ -1168,6 +1181,7 @@ CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
+
 	CTexture* pWaterTexture = new CTexture(2, RESOURCE_TEXTURE2D, 0, 1);
 
 	pWaterTexture->LoadTextureFromDDSFile(pd3dDevice, pd3dCommandList, L"Image/Water_Detail_Texture_0.dds", RESOURCE_TEXTURE2D, 0);
@@ -1180,7 +1194,7 @@ CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 	pRippleWaterShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	pRippleWaterShader->CreateCbvSrvDescriptorHeaps(pd3dDevice, 1, 2);
 	//pRippleWaterShader->CreateConstantBufferViews(pd3dDevice, 1, m_pd3dcbGameObject, ncbElementBytes);
-	pRippleWaterShader->CreateShaderResourceViews(pd3dDevice, pWaterTexture, 0, 13);
+	pRippleWaterShader->CreateShaderResourceViews(pd3dDevice, pWaterTexture, 0, PARAMETER_WATER_TEXTURE);
 
 	CMaterial* pWaterMaterial = new CMaterial();
 	pWaterMaterial->SetTexture(pWaterTexture);

@@ -58,10 +58,17 @@ using Microsoft::WRL::ComPtr;
 
 #define PARAMETER_STANDARD_TEXTURE		3
 #ifdef _WITH_STANDARD_TEXTURE_MULTIPLE_DESCRIPTORS
-#define PARAMETER_SKYBOX_CUBE_TEXTURE	10
+#define PARAMETER_SKYBOX_CUBE_TEXTURE	4
 #else
 #define PARAMETER_SKYBOX_CUBE_TEXTURE	4
 #endif
+
+#define PARAMETER_TERRAIN_TEXTURE 5
+#define PARAMETER_SPRITE_TEXTURE 6
+#define PARAMETER_WATER_TEXTURE 7
+#define FAMEWORKINFO_PARAMETER	8
+
+
 
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")

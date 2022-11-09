@@ -22,11 +22,12 @@ cbuffer cbCameraInfo : register(b1)
 
 cbuffer cbGameObjectInfo : register(b2)
 {
-	matrix		gmtxGameObject : packoffset(c0);
-	MATERIAL	gMaterial : packoffset(c4);
-	uint		gnTexturesMask : packoffset(c8);
-	matrix		gmtxTexture : packoffset(c12);
+	matrix		gmtxGameObject : packoffset(c0); // 16
+	MATERIAL	gMaterial : packoffset(c4); // 16
+	uint		gnTexturesMask : packoffset(c8); // 1
+	matrix		gmtxTexture : packoffset(c12); // 16
 };
+
 
 #include "Light.hlsl"
 

@@ -807,13 +807,13 @@ void CBillboardObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12Graph
 	CreateCbvSrvDescriptorHeaps(pd3dDevice, m_nObjects, 7);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
-	CreateShaderResourceViews(pd3dDevice, ppGrassTextures[0], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppGrassTextures[1], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppFlowerTextures[0], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppFlowerTextures[1], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[0], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[1], 0, 12);
-	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[2], 0, 12);
+	CreateShaderResourceViews(pd3dDevice, ppGrassTextures[0], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppGrassTextures[1], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppFlowerTextures[0], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppFlowerTextures[1], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[0], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[1], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[2], 0, PARAMETER_SPRITE_TEXTURE);
 
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext;
 
@@ -994,8 +994,8 @@ void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Gra
 	CreateCbvSrvDescriptorHeaps(pd3dDevice, m_nObjects, 2);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
-	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[0], 0, 3);
-	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[1], 0, 3);
+	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[0], 0, PARAMETER_SPRITE_TEXTURE);
+	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[1], 0, PARAMETER_SPRITE_TEXTURE);
 
 	m_ppObjects = new CGameObject * [m_nObjects];
 
