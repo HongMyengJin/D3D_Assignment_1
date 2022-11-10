@@ -85,7 +85,11 @@ private:
 
 public:
 	void AddRef() { m_nReferences++; }
-	void Release() { if (--m_nReferences <= 0) delete this; }
+	void Release() 
+	{ 
+		if (--m_nReferences <= 0) 
+			delete this; 
+	}
 
 protected:
 	char							m_pstrMeshName[256] = { 0 };
@@ -98,7 +102,7 @@ protected:
 	D3D12_PRIMITIVE_TOPOLOGY		m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	UINT							m_nSlot = 0;
 	UINT							m_nOffset = 0;
-
+	UINT							m_nStride = 0;
 protected:
 	int								m_nVertices = 0;
 
@@ -120,7 +124,7 @@ protected:
 
 	ID3D12Resource					* m_pd3dIndexBuffer = NULL;
 	ID3D12Resource					* m_pd3dIndexUploadBuffer = NULL;
-	D3D12_INDEX_BUFFER_VIEW		m_pd3dIndexBufferView;
+	D3D12_INDEX_BUFFER_VIEW			m_pd3dIndexBufferView;
 
 
 
@@ -339,4 +343,22 @@ public:
 
 	virtual float OnGetHeight(int x, int z, void* pContext);
 	virtual XMFLOAT4 OnGetColor(int x, int z, void* pContext);
+};
+
+// 큐브 메쉬 추가
+
+class CCubeMeshDiffused : public CMesh
+{
+public:
+	CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMeshDiffused();
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+class CCubeMeshTextured : public CMesh
+{
+public:
+	CCubeMeshTextured(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMeshTextured();
 };

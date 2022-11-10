@@ -339,3 +339,31 @@ float4 PSRippleWater(VS_WATER_OUTPUT input) : SV_TARGET
 }
 
 
+// 큐브 출력 쉐이더
+
+struct VS_DIFFUSED_INPUT
+{
+	float3 position : POSITION;
+	float4 color : COLOR;
+};
+
+struct VS_DIFFUSED_OUTPUT
+{
+	float4 position : SV_POSITION;
+	float4 color : COLOR;
+};
+
+VS_DIFFUSED_OUTPUT VSCube(VS_DIFFUSED_INPUT input)
+{
+	VS_DIFFUSED_OUTPUT output;
+
+	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
+	output.color = input.color;
+
+	return(output);
+}
+
+float4 PSCube(VS_DIFFUSED_OUTPUT input) : SV_TARGET
+{
+	return(input.color);
+}

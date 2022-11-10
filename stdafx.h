@@ -36,6 +36,8 @@ using namespace std;
 
 #include <Mmsystem.h>
 
+#include <iostream>
+#include <vector>
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif

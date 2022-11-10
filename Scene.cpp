@@ -70,6 +70,7 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	XMFLOAT3 xmf3WaterScale(1.0f, 1.0f, 1.0f);
 	XMFLOAT4 xmf4WaterColor(0.5f, 0.0f, 0.7f, 1.0f);
 
+	
 	m_pRippleWater = new CRippleWater(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, 2570 * 2, 2570 * 2, 2570 * 2, 2570 * 2, xmf3WaterScale, xmf4WaterColor);
 
 	m_pRippleWater->SetPosition(0.f, 400.f, 0.f);
@@ -369,6 +370,7 @@ void CScene::ReleaseShaderVariables()
 
 	if (m_pTerrain) m_pTerrain->ReleaseShaderVariables();
 	if (m_pSkyBox) m_pSkyBox->ReleaseShaderVariables();
+	if (m_pRippleWater) m_pRippleWater->ReleaseShaderVariables();
 }
 
 void CScene::ReleaseUploadBuffers()
@@ -420,9 +422,7 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->UpdateTransform(NULL);
 
-	for (int i = 0; i < m_nShaders; i++) 
-		if (m_ppShaders[i]) 
-			m_ppShaders[i]->AnimateObjects(fTimeElapsed);
+	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->AnimateObjects(fTimeElapsed);
 	
 	if (m_pLights)
 	{
@@ -447,14 +447,14 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	pd3dCommandList->SetGraphicsRootConstantBufferView(2, d3dcbLightsGpuVirtualAddress); //Lights
 
 	if (m_pSkyBox) m_pSkyBox->Render(pd3dCommandList, pCamera);
+
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
-	if (m_pRippleWater) 
-		m_pRippleWater->Render(pd3dCommandList, pCamera);
+	if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
 
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
-	for (int i = 0; i < m_nShaders; i++) 
-		if (m_ppShaders[i]) 
-			m_ppShaders[i]->Render(pd3dCommandList, pCamera);
+	
+
+	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);
 }
 
 

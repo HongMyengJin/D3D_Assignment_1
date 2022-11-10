@@ -1134,7 +1134,7 @@ void CMultiSpriteObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCom
 	XMFLOAT4X4 xmf4x4World = Matrix4x4::Identity();
 	
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&(m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture))));
-	/*pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);*/
+	/*pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);*/ // => 추후에 확인
 	pd3dCommandList->SetGraphicsRoot32BitConstants(9, 16, &xmf4x4World, 0);
 
 }
@@ -1152,7 +1152,7 @@ void CMultiSpriteObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 
 
 
-CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, int nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) : CGameObject(1, 1)
+CRippleWater::CRippleWater(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, int nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) : CGameObject(0, 1)
 {
 	m_nWidth = nWidth;
 	m_nLength = nLength;
@@ -1281,3 +1281,49 @@ void CRippleWater::ReleaseShaderVariables()
 		m_pd3dcbGameObject->Release();
 	}
 }
+
+CBullet::CBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CGameObject(1, 1)
+{
+	CCubeMeshDiffused* pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 20.f, 20.f, 20.f);
+	SetMesh(0, pCubeMesh);
+
+	UINT ncbElementBytes = ((sizeof(XMFLOAT4X4) + 255) & ~255); //256의 배수
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	CCubeShader* pShader = new CCubeShader();
+	pShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+	pShader->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	pShader->CreateCbvSrvDescriptorHeaps(pd3dDevice, 1, 0);
+	pShader->CreateConstantBufferViews(pd3dDevice, 1, m_pd3dcbGameObject, ncbElementBytes);
+
+	SetCbvGPUDescriptorHandle(pShader->GetGPUCbvDescriptorStartHandle());
+
+	SetShader(0, pShader);
+
+
+
+}
+
+CBullet::~CBullet()
+{
+}
+
+void CBullet::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	UINT ncbElementBytes = ((sizeof(XMFLOAT4X4) + 255) & ~255); //256의 배수
+	m_pd3dcbGameObject = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+
+	m_pd3dcbGameObject->Map(0, NULL, (void**)&m_pcbMappedCube);
+
+}
+
+void CBullet::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World)
+{
+	//XMStoreFloat4x4(m_pcbMappedCube, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4World)));
+
+	//D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbGameObject->GetGPUVirtualAddress();
+	//pd3dCommandList->SetGraphicsRootConstantBufferView(0, d3dGpuVirtualAddress);
+	XMStoreFloat4x4(m_pcbMappedCube, XMMatrixTranspose(XMLoadFloat4x4(&m_xmf4x4World)));
+	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &m_xmf4x4World, 0);
+}
+

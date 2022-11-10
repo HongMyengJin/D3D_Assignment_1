@@ -211,7 +211,6 @@ public:
 
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_d3dCbvGPUDescriptorHandle;
 
-
 	virtual void SetMesh(int nIndex, CMesh* pMesh);
 	void SetShader(int nMaterial, CShader *pShader);
 	void SetMaterial(int nMaterial, CMaterial *pMaterial);
@@ -417,4 +416,18 @@ public:
 	float GetLength() { return(m_nLength * m_xmf3Scale.z); }
 	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void ReleaseShaderVariables();
+};
+
+class CBullet : public CGameObject
+{
+public:
+	CBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+	virtual ~CBullet();
+
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
+protected:
+	ID3D12Resource* m_pd3dcbGameObject = NULL;
+	XMFLOAT4X4* m_pcbMappedCube = NULL;
+
 };

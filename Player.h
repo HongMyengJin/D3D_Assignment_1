@@ -34,7 +34,7 @@ protected:
 	CCamera						*m_pCamera = NULL;
 
 	CShader						*m_pShader = NULL;
-
+			
 public:
 	CPlayer();
 	virtual ~CPlayer();
@@ -99,6 +99,12 @@ private:
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+	void Bullet_Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
+
+private:
+	void PrepareBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+private:
+	std::vector< CBullet*>	m_vecBullet;
 };
 
 
