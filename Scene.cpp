@@ -451,6 +451,7 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
 	if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
 
+	if (m_pPlayer) static_cast<CAirplanePlayer*>(m_pPlayer)->Bullet_Render(pd3dCommandList, pCamera);
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 	
 
