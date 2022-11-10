@@ -249,16 +249,16 @@ D3D12_SHADER_RESOURCE_VIEW_DESC CTexture::GetShaderResourceViewDesc(int nIndex)
 
 void CTexture::AnimateRowColumn(float fTime)
 {
-	//	m_xmf4x4Texture = Matrix4x4::Identity();
-	//m_xmf4x4Texture._11 = 1.0f / float(m_nRows);
-	//m_xmf4x4Texture._22 = 1.0f / float(m_nCols);
-	//m_xmf4x4Texture._31 = float(m_nRow) / float(m_nRows);
-	//m_xmf4x4Texture._32 = float(m_nCol) / float(m_nCols);
-	//if (fTime == 0.0f)
-	//{
-	//	if (++m_nCol == m_nCols) { m_nRow++; m_nCol = 0; }
-	//	if (m_nRow == m_nRows) m_nRow = 0;
-	//}
+	m_xmf4x4Texture = Matrix4x4::Identity();
+	m_xmf4x4Texture._11 = 1.0f / float(m_nRows);
+	m_xmf4x4Texture._22 = 1.0f / float(m_nCols);
+	m_xmf4x4Texture._31 = float(m_nRow) / float(m_nRows);
+	m_xmf4x4Texture._32 = float(m_nCol) / float(m_nCols);
+	if (fTime == 0.0f)
+	{
+		if (++m_nCol == m_nCols) { m_nRow++; m_nCol = 0; }
+		if (m_nRow == m_nRows) m_nRow = 0;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1131,9 +1131,11 @@ void CMultiSpriteObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCom
 
 	CGameObject::UpdateShaderVariable(pd3dCommandList, pxmf4x4World);
 
-	XMFLOAT4X4 xmf4x4World;
+	XMFLOAT4X4 xmf4x4World = Matrix4x4::Identity();
+	
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&(m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture))));
-	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);
+	/*pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);*/
+	pd3dCommandList->SetGraphicsRoot32BitConstants(9, 16, &xmf4x4World, 0);
 
 }
 

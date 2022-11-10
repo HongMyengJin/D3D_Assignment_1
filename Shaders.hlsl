@@ -4,6 +4,7 @@ struct MATERIAL
 	float4					m_cDiffuse;
 	float4					m_cSpecular; //a = power
 	float4					m_cEmissive;
+
 };
 
 cbuffer cbFrameworkInfo : register(b0)
@@ -25,9 +26,13 @@ cbuffer cbGameObjectInfo : register(b2)
 	matrix		gmtxGameObject : packoffset(c0); // 16
 	MATERIAL	gMaterial : packoffset(c4); // 16
 	uint		gnTexturesMask : packoffset(c8); // 1
-	matrix		gmtxTexture : packoffset(c12); // 16
+
 };
 
+cbuffer cbTextureInfo : register(b3)
+{
+	matrix		gmtxTexture : packoffset(c0); // 16
+};
 
 #include "Light.hlsl"
 
@@ -201,7 +206,7 @@ VS_SPRITE_TEXTURED_OUTPUT VSSpriteAnimation(VS_SPRITE_TEXTURED_INPUT input)
 
 	output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
 	output.uv = mul(float3(input.uv, 1.0f), (float3x3)(gmtxTexture)).xy;
-
+	//output.uv = input.uv;
 	return(output);
 }
 
