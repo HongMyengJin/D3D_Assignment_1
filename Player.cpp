@@ -92,14 +92,22 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (x != 0.0f)
 		{
 			m_fPitch += x;
-			if (m_fPitch > +89.0f) { x -= (m_fPitch - 89.0f); m_fPitch = +89.0f; }
-			if (m_fPitch < -89.0f) { x -= (m_fPitch + 89.0f); m_fPitch = -89.0f; }
+			if (m_fPitch > +89.0f) {
+				x -= (m_fPitch - 89.0f);
+				m_fPitch = +89.0f; 
+			}
+			if (m_fPitch < -89.0f) {
+				x -= (m_fPitch + 89.0f);
+				m_fPitch = -89.0f; 
+			}
 		}
 		if (y != 0.0f)
 		{
 			m_fYaw += y;
-			if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
-			if (m_fYaw < 0.0f) m_fYaw += 360.0f;
+			if (m_fYaw > 360.0f) 
+				m_fYaw -= 360.0f;
+			if (m_fYaw < 0.0f) 
+				m_fYaw += 360.0f;
 		}
 		if (z != 0.0f)
 		{
@@ -291,17 +299,47 @@ void CAirplanePlayer::OnPrepareRender()
 	CPlayer::OnPrepareRender();
 }
 
+void CAirplanePlayer::Bullet_Animate(float fTimeElapsed)
+{
+	for (int i = 0; i < m_vecBullet.size(); i++)
+		if (m_vecBullet[i]->Get_Active())
+			m_vecBullet[i]->Animate(fTimeElapsed, nullptr);
+}
+
 void CAirplanePlayer::Bullet_Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	for (int i = 0; i < m_vecBullet.size(); i++)
-		m_vecBullet[i]->Render(pd3dCommandList, pCamera);
+		if(m_vecBullet[i]->Get_Active())
+			m_vecBullet[i]->Render(pd3dCommandList, pCamera);
+}
+
+void CAirplanePlayer::Fire_Bullet()
+{
+	for (int i = 0; i < m_vecBullet.size(); i++)
+	{
+		if (!m_vecBullet[i]->Get_Active()) // 활성화되어있지 않다면
+		{
+			// 일단 플레이어 위치로 변환
+			m_vecBullet[i]->SetPosition(GetPosition());
+			//m_vecBullet[i]->SetLookAt(GetLookVector());
+			m_vecBullet[i]->Rotate(m_fPitch, m_fYaw, m_fRoll);
+			m_vecBullet[i]->Set_Direct(GetLookVector());
+			m_vecBullet[i]->Set_Active(true);
+			break;
+			// 플레이어가 바라보는 방향으로 셋
+			// 속도도 정해주기
+			// 업데이트에서 이동시켜주기
+		}
+	}
 }
 
 void CAirplanePlayer::PrepareBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
-	CBullet* pBullet = new CBullet(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
-	pBullet->SetPosition(920.f, 745.f, 1270.f);
-	for (int i = 0; i < 10; i++) m_vecBullet.emplace_back(pBullet);
+	for (int i = 0; i < 10; i++)
+	{
+		CBullet* pBullet = new CBullet(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+		m_vecBullet.emplace_back(pBullet);
+	}
 
 }
 

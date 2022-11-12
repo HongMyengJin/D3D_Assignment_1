@@ -99,8 +99,9 @@ private:
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+	void Bullet_Animate(float fTimeElapsed);
 	void Bullet_Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
-
+	void Fire_Bullet();
 private:
 	void PrepareBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
 private:

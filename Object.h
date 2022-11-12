@@ -426,8 +426,15 @@ public:
 
 	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
-protected:
-	ID3D12Resource* m_pd3dcbGameObject = NULL;
-	XMFLOAT4X4* m_pcbMappedCube = NULL;
+
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent);
+	void Set_Active(bool bActive);
+	bool Get_Active();
+
+	void Set_Direct(XMFLOAT3 Direct);
+private:
+	bool		m_bActive = false;
+	XMFLOAT3	m_xmf3Direct = XMFLOAT3(0.f, 0.f, 0.f);
+	float		m_fSpeed = 10.f;
 
 };

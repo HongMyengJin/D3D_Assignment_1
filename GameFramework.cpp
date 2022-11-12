@@ -448,6 +448,7 @@ void CGameFramework::ProcessInput()
 		if (pKeysBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
+		
 		float cxDelta = 0.0f, cyDelta = 0.0f;
 		POINT ptCursorPos;
 		if (GetCapture() == m_hWnd)
@@ -459,6 +460,10 @@ void CGameFramework::ProcessInput()
 			SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
 		}
 
+		if (pKeysBuffer[VK_SPACE] & 0xF0) // ºÒ·¿ ¹ß»ç
+		{
+			static_cast<CAirplanePlayer*>(m_pPlayer)->Fire_Bullet();
+		}
 		if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 		{
 			if (cxDelta || cyDelta)

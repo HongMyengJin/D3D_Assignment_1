@@ -1337,3 +1337,28 @@ void CBullet::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, 
 CGameObject:UpdateShaderVariable(pd3dCommandList, pxmf4x4World);
 }
 
+
+void CBullet::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+{
+	if (m_bActive)
+	{
+		XMFLOAT3 xmf3Position = GetPosition();
+		SetPosition(Vector3::Add(xmf3Position, XMFLOAT3(m_xmf3Direct.x * m_fSpeed * fTimeElapsed, m_xmf3Direct.y * m_fSpeed * fTimeElapsed, m_xmf3Direct.z * m_fSpeed * fTimeElapsed)));
+	}
+}
+
+void CBullet::Set_Active(bool bActive)
+{
+	m_bActive = bActive;
+}
+
+bool CBullet::Get_Active()
+{
+	return m_bActive;
+}
+
+void CBullet::Set_Direct(XMFLOAT3 Direct)
+{
+	m_xmf3Direct = Direct;
+}
+
