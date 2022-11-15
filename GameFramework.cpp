@@ -474,7 +474,7 @@ void CGameFramework::ProcessInput()
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 			}
 			if (dwDirection) 
-				m_pPlayer->Move(dwDirection, 60.f, false);
+				m_pPlayer->Move(dwDirection, 40.f, false);
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());

@@ -594,6 +594,17 @@ void CGameObject::MoveForward(float fDistance)
 	CGameObject::SetPosition(xmf3Position);
 }
 
+void CGameObject::Set_Rotation(float fPitch, float fYaw, float fRoll)
+{
+	m_xmf4x4Transform._11 = 1; m_xmf4x4Transform._12 = 0; m_xmf4x4Transform._13 = 0; m_xmf4x4Transform._14 = 0;
+	m_xmf4x4Transform._21 = 0; m_xmf4x4Transform._22 = 1; m_xmf4x4Transform._23 = 0; m_xmf4x4Transform._24 = 0;
+	m_xmf4x4Transform._31 = 0; m_xmf4x4Transform._32 = 0; m_xmf4x4Transform._33 = 1; m_xmf4x4Transform._34 = 0;
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(fPitch), XMConvertToRadians(fYaw), XMConvertToRadians(fRoll));
+	m_xmf4x4Transform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4Transform);
+
+	UpdateTransform(NULL);
+}
+
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(fPitch), XMConvertToRadians(fYaw), XMConvertToRadians(fRoll));
@@ -1286,7 +1297,7 @@ CBullet::CBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dComman
 {
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
-	CCubeMeshDiffused* pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 20.f, 20.f, 20.f);
+	CCubeMeshDiffused* pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 3.f, 3.f, 5.f);
 	SetMesh(0, pCubeMesh);
 
 	UINT ncbElementBytes = ((sizeof(XMFLOAT4X4) + 255) & ~255); //256ÀÇ ¹è¼ö
@@ -1344,6 +1355,11 @@ void CBullet::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 	{
 		XMFLOAT3 xmf3Position = GetPosition();
 		SetPosition(Vector3::Add(xmf3Position, XMFLOAT3(m_xmf3Direct.x * m_fSpeed * fTimeElapsed, m_xmf3Direct.y * m_fSpeed * fTimeElapsed, m_xmf3Direct.z * m_fSpeed * fTimeElapsed)));
+		m_fMoveValue += m_fSpeed * fTimeElapsed;
+		if (m_fMoveValue > 200.f) {
+			m_fMoveValue = 0.f;
+			Set_Active(false);
+		}
 	}
 }
 

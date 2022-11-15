@@ -60,12 +60,18 @@ void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 	if (dwDirection)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-		if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
-		if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
-		if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
-		if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
-		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
-		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
+		if (dwDirection & DIR_FORWARD) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
+		if (dwDirection & DIR_BACKWARD) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
+		if (dwDirection & DIR_RIGHT) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
+		if (dwDirection & DIR_LEFT) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
+		if (dwDirection & DIR_UP) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
+		if (dwDirection & DIR_DOWN) 
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
 		Move(xmf3Shift, bUpdateVelocity);
 	}
@@ -91,15 +97,15 @@ void CPlayer::Rotate(float x, float y, float z)
 	{
 		if (x != 0.0f)
 		{
-			m_fPitch += x;
-			if (m_fPitch > +89.0f) {
-				x -= (m_fPitch - 89.0f);
-				m_fPitch = +89.0f; 
-			}
-			if (m_fPitch < -89.0f) {
-				x -= (m_fPitch + 89.0f);
-				m_fPitch = -89.0f; 
-			}
+			//m_fPitch += x;
+			//if (m_fPitch > +89.0f) {
+			//	x -= (m_fPitch - 89.0f);
+			//	m_fPitch = +89.0f; 
+			//}
+			//if (m_fPitch < -89.0f) {
+			//	x -= (m_fPitch + 89.0f);
+			//	m_fPitch = -89.0f; 
+			//}
 		}
 		if (y != 0.0f)
 		{
@@ -265,7 +271,7 @@ CAirplanePlayer::CAirplanePlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommand
 	PrepareBullet(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
-	m_vecBullet.reserve(10);
+	m_vecBullet.reserve(25);
 }
 
 CAirplanePlayer::~CAirplanePlayer()
@@ -322,7 +328,7 @@ void CAirplanePlayer::Fire_Bullet()
 			// 일단 플레이어 위치로 변환
 			m_vecBullet[i]->SetPosition(GetPosition());
 			//m_vecBullet[i]->SetLookAt(GetLookVector());
-			m_vecBullet[i]->Rotate(m_fPitch, m_fYaw, m_fRoll);
+			m_vecBullet[i]->Set_Rotation(m_fPitch, m_fYaw, m_fRoll);
 			m_vecBullet[i]->Set_Direct(GetLookVector());
 			m_vecBullet[i]->Set_Active(true);
 			break;
@@ -335,7 +341,7 @@ void CAirplanePlayer::Fire_Bullet()
 
 void CAirplanePlayer::PrepareBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 25; i++)
 	{
 		CBullet* pBullet = new CBullet(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 		m_vecBullet.emplace_back(pBullet);

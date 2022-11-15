@@ -250,6 +250,7 @@ public:
 	void MoveUp(float fDistance = 1.0f);
 	void MoveForward(float fDistance = 1.0f);
 
+	void Set_Rotation(float fPitch, float fYaw, float fRoll);
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 	void Rotate(XMFLOAT3 *pxmf3Axis, float fAngle);
 	void Rotate(XMFLOAT4 *pxmf4Quaternion);
@@ -435,6 +436,6 @@ public:
 private:
 	bool		m_bActive = false;
 	XMFLOAT3	m_xmf3Direct = XMFLOAT3(0.f, 0.f, 0.f);
-	float		m_fSpeed = 10.f;
-
+	float		m_fSpeed = 40.f;
+	float		m_fMoveValue = 0.f;
 };
