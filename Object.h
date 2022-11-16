@@ -120,7 +120,7 @@ public:
 	void ReleaseUploadBuffers();
 
 	void Animate() { }
-	void AnimateRowColumn(float fTime = 0.0f);
+	bool AnimateRowColumn(float fTime = 0.0f);
 
 };
 
@@ -194,6 +194,9 @@ public:
 	virtual ~CGameObject();
 
 public:
+	bool							m_bActive = false;
+	XMFLOAT3						First;
+	XMFLOAT3						Last;
 	char							m_pstrFrameName[64];
 
 	int								m_nMeshes = 0;
@@ -208,6 +211,9 @@ public:
 	CGameObject 					*m_pParent = NULL;
 	CGameObject 					*m_pChild = NULL;
 	CGameObject 					*m_pSibling = NULL;
+
+	bool							m_bCollision = false;
+	BoundingOrientedBox				m_xmOOBB = BoundingOrientedBox();
 
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_d3dCbvGPUDescriptorHandle;
 
@@ -265,6 +271,7 @@ public:
 
 	UINT GetMeshType(UINT nIndex) { return((m_ppMeshes[nIndex]) ? m_ppMeshes[nIndex]->GetType() : 0x00); }
 
+	virtual void UpdateBoundingBox();
 public:
 	void LoadMaterialsFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, CGameObject *pParent, FILE *pInFile, CShader *pShader);
 
@@ -276,37 +283,54 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-class CSuperCobraObject : public CGameObject
+
+class CHelicopter : public CGameObject
+{
+public:
+	CHelicopter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+	virtual ~CHelicopter();
+
+protected:
+	CGameObject* m_pMainRotorFrame = NULL;
+	CGameObject* m_pTailRotorFrame = NULL;
+
+	CShader* m_pShader = NULL;
+public:
+	void	Set_Active(bool Active);
+
+public:
+	void	Set_Shader(CShader* pShader);
+public:
+	virtual void PrepareAnimate();
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
+};
+
+class CSuperCobraObject : public CHelicopter
 {
 public:
 	CSuperCobraObject(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature);
 	virtual ~CSuperCobraObject();
 
-private:
-	CGameObject					*m_pMainRotorFrame = NULL;
-	CGameObject					*m_pTailRotorFrame = NULL;
 
 public:
 	virtual void PrepareAnimate();
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent = NULL);
 };
 
-class CGunshipObject : public CGameObject
+class CGunshipObject : public CHelicopter
 {
 public:
 	CGunshipObject(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature);
 	virtual ~CGunshipObject();
 
-private:
-	CGameObject					*m_pMainRotorFrame = NULL;
-	CGameObject					*m_pTailRotorFrame = NULL;
 
 public:
 	virtual void PrepareAnimate();
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent = NULL);
 };
 
-class CMi24Object : public CGameObject
+class CMi24Object : public CHelicopter
 {
 public:
 	CMi24Object(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature);
@@ -434,7 +458,7 @@ public:
 
 	void Set_Direct(XMFLOAT3 Direct);
 private:
-	bool		m_bActive = false;
+
 	XMFLOAT3	m_xmf3Direct = XMFLOAT3(0.f, 0.f, 0.f);
 	float		m_fSpeed = 40.f;
 	float		m_fMoveValue = 0.f;

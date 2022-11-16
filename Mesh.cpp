@@ -30,6 +30,16 @@ CMesh::~CMesh()
 	if (m_pxmf3Positions) delete[] m_pxmf3Positions;
 }
 
+XMFLOAT3 CMesh::Get_Extent()
+{
+	return m_xmf3AABBExtents;
+}
+
+XMFLOAT3 CMesh::Get_Center()
+{
+	return m_xmf3AABBCenter;
+}
+
 void CMesh::ReleaseUploadBuffers()
 {
 	if (m_pd3dPositionUploadBuffer) m_pd3dPositionUploadBuffer->Release();

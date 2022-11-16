@@ -91,6 +91,9 @@ public:
 			delete this; 
 	}
 
+public:
+	XMFLOAT3						Get_Extent();
+	XMFLOAT3						Get_Center();
 protected:
 	char							m_pstrMeshName[256] = { 0 };
 

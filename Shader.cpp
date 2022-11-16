@@ -449,10 +449,11 @@ XMFLOAT3 RandomPositionInSphere(XMFLOAT3 xmf3Center, float fRadius, int nColumn,
 	return(xmf3Position);
 }
 
+
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, void *pContext)
 {
 	m_nObjects = 10;
-	m_ppObjects = new CGameObject*[m_nObjects];
+	m_ppObjects = new CHelicopter *[m_nObjects];
 
 	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 17 + 50); //SuperCobra(17), Gunship(2)
 
@@ -471,12 +472,14 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 			{
 				m_ppObjects[nObjects] = new CSuperCobraObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pSuperCobraModel);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
 				pSuperCobraModel->AddRef();
 			}
 			else
 			{
 				m_ppObjects[nObjects] = new CGunshipObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pGunshipModel);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
 				pGunshipModel->AddRef();
 			}
 			XMFLOAT3 xmf3RandomPosition = RandomPositionInSphere(XMFLOAT3(920.0f, -165.f, 1200.0f), Random(20.0f, 150.0f), h - int(floor(nColumnSize / 2.0f)), nColumnSpace);
@@ -494,12 +497,14 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
 			{
 				m_ppObjects[nObjects] = new CSuperCobraObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pSuperCobraModel);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
 				pSuperCobraModel->AddRef();
 			}
 			else
 			{
 				m_ppObjects[nObjects] = new CGunshipObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pGunshipModel);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
 				pGunshipModel->AddRef();
 			}
 			XMFLOAT3 xmf3RandomPosition = RandomPositionInSphere(XMFLOAT3(920.0f, -165.f, 1200.0f), Random(20.0f, 150.0f), nColumnSize - int(floor(nColumnSize / 2.0f)), nColumnSpace);
@@ -523,6 +528,7 @@ void CObjectsShader::ReleaseObjects()
 
 void CObjectsShader::AnimateObjects(float fTimeElapsed)
 {
+
 }
 
 void CObjectsShader::ReleaseUploadBuffers()
@@ -532,18 +538,39 @@ void CObjectsShader::ReleaseUploadBuffers()
 
 void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, int nPipelineState)
 {
-	CShader::Render(pd3dCommandList, pCamera, nPipelineState);
+	
 
 	for (int j = 0; j < m_nObjects; j++)
 	{
 		if (m_ppObjects[j])
 		{
+			CShader::Render(pd3dCommandList, pCamera, nPipelineState);
 			m_ppObjects[j]->Animate(0.16f);
+			m_ppObjects[j]->UpdateBoundingBox();
 			m_ppObjects[j]->UpdateTransform(NULL);
 			m_ppObjects[j]->Render(pd3dCommandList, pCamera);
 		}
 	}
 }
+
+bool CObjectsShader::CollisionCheck(CGameObject* pObject)
+{
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		if (m_ppObjects[j])
+		{
+			if (m_ppObjects[j]->m_xmOOBB.Intersects(pObject->m_xmOOBB))
+			{
+				m_ppObjects[j]->m_bCollision = true;
+				pObject->m_bCollision = true;
+				/*static_cast<CHelicopter*>(m_ppObjects[j])->Set_Active(true);*/
+				//return true;
+			}
+		}
+	}
+	return false;
+}
+
 
 
 CTexturedShader::CTexturedShader()
@@ -971,6 +998,17 @@ D3D12_SHADER_BYTECODE CMultiSpriteObjectsShader::CreateVertexShader()
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSSpriteAnimation", "vs_5_1", &m_pd3dVertexShaderBlob));
 }
 
+void CMultiSpriteObjectsShader::SetPosition(XMFLOAT3 Position)
+{
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		if (m_ppObjects[j])
+		{
+			m_ppObjects[j]->SetPosition(Position);
+		}
+	}
+}
+
 void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext)
 {
 	CTexture* ppSpriteTextures[2];
@@ -1034,12 +1072,12 @@ void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandLis
 		XMFLOAT3 xmf3PlayerPosition = pPlayer->GetPosition();
 		XMFLOAT3 xmf3PlayerLook = pPlayer->GetLookVector();
 		xmf3PlayerPosition.y += 5.0f;
-		XMFLOAT3 xmf3Position = Vector3::Add(xmf3PlayerPosition, Vector3::ScalarProduct(xmf3PlayerLook, 50.0f, false));
+		//XMFLOAT3 xmf3Position = Vector3::Add(xmf3PlayerPosition, Vector3::ScalarProduct(xmf3PlayerLook, 50.0f, false));
 		for (int j = 0; j < m_nObjects; j++)
 		{
 			if (m_ppObjects[j])
 			{
-				m_ppObjects[j]->SetPosition(xmf3Position);
+				//m_ppObjects[j]->SetPosition(xmf3Position);
 				m_ppObjects[j]->SetLookAt(xmf3CameraPosition, XMFLOAT3(0.0f, 1.0f, 0.0f));
 			}
 		}

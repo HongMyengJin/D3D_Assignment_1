@@ -66,7 +66,8 @@ public:
 
 	void Update(float fTimeElapsed);
 
-	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
+	virtual void OnPlayerUpdateCallback(float fTimeElapsed);
+
 	void SetPlayerUpdatedContext(LPVOID pContext) { m_pPlayerUpdatedContext = pContext; }
 
 	virtual void OnCameraUpdateCallback(float fTimeElapsed) { }
@@ -102,6 +103,9 @@ public:
 	void Bullet_Animate(float fTimeElapsed);
 	void Bullet_Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 	void Fire_Bullet();
+
+public:
+	const std::vector< CBullet*>& Get_Bullet();
 private:
 	void PrepareBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
 private:

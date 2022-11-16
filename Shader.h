@@ -20,7 +20,7 @@ protected:
 	bool							m_bActive = true;
 
 public:
-	void SetActive(bool bActive) { m_bActive = bActive; }
+	virtual void SetActive(bool bActive) { m_bActive = bActive; }
 	bool GetActive() { return(m_bActive); }
 
 protected:
@@ -74,6 +74,7 @@ public:
 	virtual void AnimateObjects(float fTimeElapsed) { }
 	virtual void ReleaseObjects() { }
 
+	virtual void SetPosition(XMFLOAT3 Position) {};
 	void CreateCbvSrvDescriptorHeaps(ID3D12Device *pd3dDevice, int nConstantBufferViews, int nShaderResourceViews);
 	void CreateConstantBufferViews(ID3D12Device *pd3dDevice, int nConstantBufferViews, ID3D12Resource *pd3dConstantBuffers, UINT nStride);
 	void CreateShaderResourceViews(ID3D12Device* pd3dDevice, CTexture* pTexture, UINT nDescriptorHeapIndex, UINT nRootParameterStartIndex);
@@ -137,8 +138,10 @@ public:
 
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, int nPipelineState=0);
 
+	virtual bool CollisionCheck(CGameObject* pObject);
+
+	CHelicopter						**m_ppObjects = 0;
 protected:
-	CGameObject						**m_ppObjects = 0;
 	int								m_nObjects = 0;
 };
 
@@ -246,12 +249,14 @@ public:
 
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 
+	virtual void SetPosition(XMFLOAT3 Position);
 	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext = NULL);
 	virtual void ReleaseObjects();
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState);
 
 	virtual void ReleaseUploadBuffers();
+
 };
 
 

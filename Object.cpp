@@ -247,7 +247,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC CTexture::GetShaderResourceViewDesc(int nIndex)
 	return(d3dShaderResourceViewDesc);
 }
 
-void CTexture::AnimateRowColumn(float fTime)
+bool CTexture::AnimateRowColumn(float fTime)
 {
 	m_xmf4x4Texture = Matrix4x4::Identity();
 	m_xmf4x4Texture._11 = 1.0f / float(m_nRows);
@@ -256,9 +256,17 @@ void CTexture::AnimateRowColumn(float fTime)
 	m_xmf4x4Texture._32 = float(m_nCol) / float(m_nCols);
 	if (fTime == 0.0f)
 	{
-		if (++m_nCol == m_nCols) { m_nRow++; m_nCol = 0; }
-		if (m_nRow == m_nRows) m_nRow = 0;
+		if (++m_nCol == m_nCols)  // 개수가 같아지면
+		{ 
+			m_nRow++; m_nCol = 0; 
+		}
+		if (m_nRow == m_nRows)
+		{
+			m_nRow = 0;
+			return false;
+		}
 	}
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,15 +387,50 @@ void CGameObject::Release()
 
 void CGameObject::SetChild(CGameObject *pChild)
 {
+	//여기서 충돌박스 값 넣기
+	m_xmOOBB.Extents = { Last.x - First.x, Last.y - First.y, Last.z - First.z };
+	m_xmOOBB.Center = { (Last.x + First.x) / 2.f,  (Last.y + First.y) / 2.f , (Last.z + First.z) / 2.f };
+
+	XMFLOAT3 Center = pChild->m_xmOOBB.Center;
+	XMFLOAT3 Extents = pChild->m_xmOOBB.Extents;
+	if (Center.x - Extents.x < m_xmOOBB.Center.x - m_xmOOBB.Extents.x) // 왼쪽 좌표 비교
+	{
+		First.x = Center.x - Extents.x;
+	}
+	if (Center.x + Extents.x > m_xmOOBB.Center.x + m_xmOOBB.Extents.x) // 오른쪽 좌표 비교
+	{
+		Last.x = Center.x + Extents.x;
+	}
+	if (Center.y - Extents.y < m_xmOOBB.Center.y - m_xmOOBB.Extents.y) // 위쪽 좌표 비교
+	{
+		First.y = Center.y - Extents.y;
+	}
+	if (Center.y + Extents.y > m_xmOOBB.Center.y + m_xmOOBB.Extents.y) // 아래쪽 좌표 비교
+	{
+		Last.y = Center.y + Extents.y;
+	}
+	if (Center.z - Extents.z < m_xmOOBB.Center.z - m_xmOOBB.Extents.z) // 앞쪽 좌표 비교
+	{
+		First.z = Center.z - Extents.z;
+	}
+	if (Center.z + Extents.z > m_xmOOBB.Center.z + m_xmOOBB.Extents.z) // 뒤쪽 좌표 비교
+	{
+		Last.z = Center.z + Extents.z;
+	}
+	m_xmOOBB.Center = { (Last.x + First.x) / 2.f, (Last.y + First.y) / 2.f, (Last.z + First.z) / 2.f };
+	m_xmOOBB.Extents = { Last.x - First.x, Last.y - First.y, Last.z - First.z };
 	if (m_pChild)
 	{
 		if (pChild) pChild->m_pSibling = m_pChild->m_pSibling;
 		m_pChild->m_pSibling = pChild;
+
+		
 	}
 	else
 	{
 		m_pChild = pChild;
 	}
+
 	if (pChild)
 	{
 		pChild->m_pParent = this;
@@ -401,8 +444,48 @@ void CGameObject::SetMesh(int nIndex, CMesh* pMesh)
 		if (m_ppMeshes[nIndex]) 
 			m_ppMeshes[nIndex]->Release();
 		m_ppMeshes[nIndex] = pMesh;
-		if (pMesh) 
+		if (pMesh)
+		{
+			// 끝과 끝의 중점
 			pMesh->AddRef();
+			XMFLOAT3 Extent = pMesh->Get_Extent();
+			XMFLOAT3 Center = pMesh->Get_Center();
+
+			if (First.x > Center.x - Extent.x)
+			{
+				First.x = Center.x - Extent.x;
+			}
+			if (Last.x < Center.x + Extent.x)
+			{
+				Last.x = Center.x + Extent.x;
+			}
+
+			if (First.y > Center.y - Extent.y)
+			{
+				First.y = Center.y - Extent.y;
+			}
+			if (Last.y < Center.y + Extent.y)
+			{
+				Last.y = Center.y + Extent.y;
+			}
+
+			if (First.z > Center.z - Extent.z)
+			{
+				First.z = Center.z - Extent.z;
+			}
+			if (Last.z < Center.z + Extent.z)
+			{
+				Last.z = Center.z + Extent.z;
+			}
+			//if (m_xmOOBB.Extents.y < (Extent.y + Center.y))
+			//{
+			//	m_xmOOBB.Extents.y = Extent.y;
+			//}
+			//if (m_xmOOBB.Extents.z < (Extent.z + Center.z))
+			//{
+			//	m_xmOOBB.Extents.z = Extent.y;
+			//}
+		}
 	}
 }
 
@@ -667,6 +750,13 @@ int CGameObject::FindReplicatedTexture(_TCHAR* pstrTextureName, D3D12_GPU_DESCRI
 	return(nParameterIndex);
 }
 
+void CGameObject::UpdateBoundingBox()
+{
+	m_xmOOBB.Center = { (Last.x + First.x) / 2.f, (Last.y + First.y) / 2.f, (Last.z + First.z) / 2.f };
+	XMStoreFloat3(&m_xmOOBB.Center, XMLoadFloat3(&m_xmOOBB.Center) + XMLoadFloat3(&GetPosition()));
+	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+}
+
 void CGameObject::LoadMaterialsFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, CGameObject *pParent, FILE *pInFile, CShader *pShader)
 {
 	char pstrToken[64] = { '\0' };
@@ -867,6 +957,8 @@ CGameObject *CGameObject::LoadGeometryFromFile(ID3D12Device *pd3dDevice, ID3D12G
 
 	CGameObject *pGameObject = CGameObject::LoadFrameHierarchyFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, NULL, pInFile, pShader);
 
+
+
 #ifdef _WITH_DEBUG_FRAME_HIERARCHY
 	TCHAR pstrDebug[256] = { 0 };
 	_stprintf_s(pstrDebug, 256, _T("Frame Hierarchy\n"));
@@ -915,7 +1007,7 @@ void CSkyBox::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamer
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-CSuperCobraObject::CSuperCobraObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CGameObject(0, 0)
+CSuperCobraObject::CSuperCobraObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CHelicopter(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature)
 {
 }
 
@@ -931,23 +1023,12 @@ void CSuperCobraObject::PrepareAnimate()
 
 void CSuperCobraObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 {
-	if (m_pMainRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(360.0f * 4.0f) * fTimeElapsed);
-		m_pMainRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pMainRotorFrame->m_xmf4x4Transform);
-	}
-	if (m_pTailRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationX(XMConvertToRadians(360.0f * 4.0f) * fTimeElapsed);
-		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
-	}
-
-	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+	CHelicopter::Animate(fTimeElapsed, pxmf4x4Parent);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-CGunshipObject::CGunshipObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CGameObject(0, 0)
+CGunshipObject::CGunshipObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CHelicopter(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature)
 {
 }
 
@@ -963,23 +1044,12 @@ void CGunshipObject::PrepareAnimate()
 
 void CGunshipObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 {
-	if (m_pMainRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(360.0f * 2.0f) * fTimeElapsed);
-		m_pMainRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pMainRotorFrame->m_xmf4x4Transform);
-	}
-	if (m_pTailRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationX(XMConvertToRadians(360.0f * 4.0f) * fTimeElapsed);
-		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
-	}
-
-	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+	CHelicopter::Animate(fTimeElapsed, pxmf4x4Parent);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-CMi24Object::CMi24Object(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature) : CGameObject(0, 0)
+CMi24Object::CMi24Object(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature) : CHelicopter(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature)
 {
 }
 
@@ -995,18 +1065,7 @@ void CMi24Object::PrepareAnimate()
 
 void CMi24Object::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 {
-	if (m_pMainRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(360.0f * 2.0f) * fTimeElapsed);
-		m_pMainRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pMainRotorFrame->m_xmf4x4Transform);
-	}
-	if (m_pTailRotorFrame)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationX(XMConvertToRadians(360.0f * 4.0f) * fTimeElapsed);
-		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
-	}
-
-	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+	CHelicopter::Animate(fTimeElapsed, pxmf4x4Parent);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1156,7 +1215,8 @@ void CMultiSpriteObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 	{
 		m_fTime += fTimeElapsed * 0.5f;
 		if (m_fTime >= m_fSpeed) m_fTime = 0.0f;
-		m_ppMaterials[0]->m_pTexture->AnimateRowColumn(m_fTime);
+		if (m_ppMaterials[0]->m_pTexture->AnimateRowColumn(m_fTime))// -> 마지막 장
+			m_bActive = false;
 	}
 }
 
@@ -1360,6 +1420,10 @@ void CBullet::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 			m_fMoveValue = 0.f;
 			Set_Active(false);
 		}
+		//if (m_bCollision) // 충돌이 있으면
+		//{
+		//	m_bActive = false;
+		//}
 	}
 }
 
@@ -1378,3 +1442,69 @@ void CBullet::Set_Direct(XMFLOAT3 Direct)
 	m_xmf3Direct = Direct;
 }
 
+CHelicopter::CHelicopter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) :CGameObject(1, 1)
+{
+
+}
+
+CHelicopter::~CHelicopter()
+{
+	if (m_pShader)
+		m_pShader->Release();
+}
+
+void CHelicopter::Set_Active(bool Active)
+{
+	if (m_pShader)
+	{
+		m_pShader->SetActive(Active);
+	}
+}
+
+void CHelicopter::Set_Shader(CShader* pShader)
+{
+	pShader->AddRef();
+	m_pShader = pShader;
+}
+
+void CHelicopter::PrepareAnimate()
+{
+}
+
+void CHelicopter::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+{
+	if (m_pMainRotorFrame)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(360.0f * 2.0f) * fTimeElapsed);
+		m_pMainRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pMainRotorFrame->m_xmf4x4Transform);
+	}
+	if (m_pTailRotorFrame)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationX(XMConvertToRadians(360.0f * 4.0f) * fTimeElapsed);
+		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
+	}
+
+	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+
+	if (m_pShader) {
+
+		if (m_bCollision)
+		{
+			m_bCollision = false;
+			m_pShader->SetActive(true);
+			m_pShader->SetPosition(GetPosition());
+		}
+		m_pShader->AnimateObjects(fTimeElapsed);
+	}
+}
+
+void CHelicopter::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	CGameObject::Render(pd3dCommandList, pCamera);
+	// m_pShader 출력
+
+	if (m_pShader) {
+
+		m_pShader->Render(pd3dCommandList, pCamera);
+	}
+}
