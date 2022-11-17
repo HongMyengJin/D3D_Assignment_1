@@ -195,8 +195,6 @@ public:
 
 public:
 	bool							m_bActive = false;
-	XMFLOAT3						First;
-	XMFLOAT3						Last;
 	char							m_pstrFrameName[64];
 
 	int								m_nMeshes = 0;
@@ -295,8 +293,6 @@ protected:
 	CGameObject* m_pTailRotorFrame = NULL;
 
 	CShader* m_pShader = NULL;
-public:
-	void	Set_Active(bool Active);
 
 public:
 	void	Set_Shader(CShader* pShader);
@@ -411,6 +407,7 @@ public:
 
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 };
 
 

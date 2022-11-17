@@ -244,6 +244,7 @@ public:
 	CMultiSpriteObjectsShader();
 	virtual ~CMultiSpriteObjectsShader();
 
+	virtual void SetActive(bool bActive); 
 	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
 	virtual D3D12_BLEND_DESC CreateBlendState();
 

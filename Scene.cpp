@@ -93,17 +93,17 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	pBillboardObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
 	m_ppShaders[1] = pBillboardObjectShader;
 
-	CMultiSpriteObjectsShader* pMultiSpriteObjectShader = new CMultiSpriteObjectsShader();
-	pMultiSpriteObjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
-	pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
-	pMultiSpriteObjectShader->SetActive(false);
-	m_pMultiSprite = pMultiSpriteObjectShader;
-	m_pMultiSprite->AddRef();
+	//CMultiSpriteObjectsShader* pMultiSpriteObjectShader = new CMultiSpriteObjectsShader();
+	//pMultiSpriteObjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+	//pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
+	//pMultiSpriteObjectShader->SetActive(false);
+	//m_pMultiSprite = pMultiSpriteObjectShader;
+	//m_pMultiSprite->AddRef();
 
 
 	CObjectsShader* pObjectsShader = new CObjectsShader();
 	pObjectsShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
-	pObjectsShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pMultiSprite);
+	pObjectsShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, nullptr);
 	m_ppShaders[0] = pObjectsShader;
 
 
@@ -127,12 +127,13 @@ void CScene::ReleaseObjects()
 		delete[] m_ppShaders;
 	}
 
-	if (m_pMultiSprite)
-	{
-		m_pMultiSprite->ReleaseShaderVariables();
-		m_pMultiSprite->ReleaseObjects();
-		m_pMultiSprite->Release();
-	}
+	//if (m_pMultiSprite)
+	//{
+	//	m_pMultiSprite->ReleaseShaderVariables();
+	//	m_pMultiSprite->ReleaseObjects();
+	//	m_pMultiSprite->Release();
+	//}
+
 	if (m_pTerrain) delete m_pTerrain;
 	if (m_pSkyBox) delete m_pSkyBox;
 
@@ -387,8 +388,8 @@ void CScene::ReleaseUploadBuffers()
 
 	for (int i = 0; i < m_nShaders; i++) 
 		m_ppShaders[i]->ReleaseUploadBuffers();
-	if (m_pMultiSprite)
-		m_pMultiSprite->ReleaseUploadBuffers();
+	//if (m_pMultiSprite)
+	//	m_pMultiSprite->ReleaseUploadBuffers();
 
 	for (int i = 0; i < m_nGameObjects; i++) 
 		m_ppGameObjects[i]->ReleaseUploadBuffers();

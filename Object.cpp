@@ -258,13 +258,15 @@ bool CTexture::AnimateRowColumn(float fTime)
 	{
 		if (++m_nCol == m_nCols)  // 개수가 같아지면
 		{ 
-			m_nRow++; m_nCol = 0; 
-		}
-		if (m_nRow == m_nRows)
-		{
-			m_nRow = 0;
+			//m_nRow++; 
+			m_nCol = 0; 
 			return false;
 		}
+		//if (m_nRow == m_nRows)
+		//{
+		//	m_nRow = 0;
+		//	
+		//}
 	}
 	return true;
 }
@@ -387,38 +389,6 @@ void CGameObject::Release()
 
 void CGameObject::SetChild(CGameObject *pChild)
 {
-	//여기서 충돌박스 값 넣기
-	m_xmOOBB.Extents = { Last.x - First.x, Last.y - First.y, Last.z - First.z };
-	m_xmOOBB.Center = { (Last.x + First.x) / 2.f,  (Last.y + First.y) / 2.f , (Last.z + First.z) / 2.f };
-
-	XMFLOAT3 Center = pChild->m_xmOOBB.Center;
-	XMFLOAT3 Extents = pChild->m_xmOOBB.Extents;
-	if (Center.x - Extents.x < m_xmOOBB.Center.x - m_xmOOBB.Extents.x) // 왼쪽 좌표 비교
-	{
-		First.x = Center.x - Extents.x;
-	}
-	if (Center.x + Extents.x > m_xmOOBB.Center.x + m_xmOOBB.Extents.x) // 오른쪽 좌표 비교
-	{
-		Last.x = Center.x + Extents.x;
-	}
-	if (Center.y - Extents.y < m_xmOOBB.Center.y - m_xmOOBB.Extents.y) // 위쪽 좌표 비교
-	{
-		First.y = Center.y - Extents.y;
-	}
-	if (Center.y + Extents.y > m_xmOOBB.Center.y + m_xmOOBB.Extents.y) // 아래쪽 좌표 비교
-	{
-		Last.y = Center.y + Extents.y;
-	}
-	if (Center.z - Extents.z < m_xmOOBB.Center.z - m_xmOOBB.Extents.z) // 앞쪽 좌표 비교
-	{
-		First.z = Center.z - Extents.z;
-	}
-	if (Center.z + Extents.z > m_xmOOBB.Center.z + m_xmOOBB.Extents.z) // 뒤쪽 좌표 비교
-	{
-		Last.z = Center.z + Extents.z;
-	}
-	m_xmOOBB.Center = { (Last.x + First.x) / 2.f, (Last.y + First.y) / 2.f, (Last.z + First.z) / 2.f };
-	m_xmOOBB.Extents = { Last.x - First.x, Last.y - First.y, Last.z - First.z };
 	if (m_pChild)
 	{
 		if (pChild) pChild->m_pSibling = m_pChild->m_pSibling;
@@ -448,43 +418,6 @@ void CGameObject::SetMesh(int nIndex, CMesh* pMesh)
 		{
 			// 끝과 끝의 중점
 			pMesh->AddRef();
-			XMFLOAT3 Extent = pMesh->Get_Extent();
-			XMFLOAT3 Center = pMesh->Get_Center();
-
-			if (First.x > Center.x - Extent.x)
-			{
-				First.x = Center.x - Extent.x;
-			}
-			if (Last.x < Center.x + Extent.x)
-			{
-				Last.x = Center.x + Extent.x;
-			}
-
-			if (First.y > Center.y - Extent.y)
-			{
-				First.y = Center.y - Extent.y;
-			}
-			if (Last.y < Center.y + Extent.y)
-			{
-				Last.y = Center.y + Extent.y;
-			}
-
-			if (First.z > Center.z - Extent.z)
-			{
-				First.z = Center.z - Extent.z;
-			}
-			if (Last.z < Center.z + Extent.z)
-			{
-				Last.z = Center.z + Extent.z;
-			}
-			//if (m_xmOOBB.Extents.y < (Extent.y + Center.y))
-			//{
-			//	m_xmOOBB.Extents.y = Extent.y;
-			//}
-			//if (m_xmOOBB.Extents.z < (Extent.z + Center.z))
-			//{
-			//	m_xmOOBB.Extents.z = Extent.y;
-			//}
 		}
 	}
 }
@@ -752,8 +685,7 @@ int CGameObject::FindReplicatedTexture(_TCHAR* pstrTextureName, D3D12_GPU_DESCRI
 
 void CGameObject::UpdateBoundingBox()
 {
-	m_xmOOBB.Center = { (Last.x + First.x) / 2.f, (Last.y + First.y) / 2.f, (Last.z + First.z) / 2.f };
-	XMStoreFloat3(&m_xmOOBB.Center, XMLoadFloat3(&m_xmOOBB.Center) + XMLoadFloat3(&GetPosition()));
+	XMStoreFloat3(&m_xmOOBB.Center, XMLoadFloat3(&GetPosition()));
 	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 }
 
@@ -1211,13 +1143,19 @@ void CMultiSpriteObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCom
 
 void CMultiSpriteObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
-	if (m_ppMaterials && m_ppMaterials[0] && m_ppMaterials[0]->m_pTexture)
+
+	if (m_bActive && m_ppMaterials && m_ppMaterials[0] && m_ppMaterials[0]->m_pTexture)
 	{
 		m_fTime += fTimeElapsed * 0.5f;
 		if (m_fTime >= m_fSpeed) m_fTime = 0.0f;
-		if (m_ppMaterials[0]->m_pTexture->AnimateRowColumn(m_fTime))// -> 마지막 장
-			m_bActive = false;
+		m_bActive = m_ppMaterials[0]->m_pTexture->AnimateRowColumn(m_fTime);
 	}
+}
+
+void CMultiSpriteObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	if(m_bActive)
+		CGameObject::Render(pd3dCommandList, pCamera);
 }
 
 
@@ -1355,6 +1293,8 @@ void CRippleWater::ReleaseShaderVariables()
 
 CBullet::CBullet(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CGameObject(1, 1)
 {
+	m_xmOOBB.Extents = { 2.f, 2.f, 3.f };
+
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
 	CCubeMeshDiffused* pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 3.f, 3.f, 5.f);
@@ -1444,7 +1384,7 @@ void CBullet::Set_Direct(XMFLOAT3 Direct)
 
 CHelicopter::CHelicopter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) :CGameObject(1, 1)
 {
-
+	m_xmOOBB.Extents = {5.f, 5.f, 10.f};
 }
 
 CHelicopter::~CHelicopter()
@@ -1453,17 +1393,9 @@ CHelicopter::~CHelicopter()
 		m_pShader->Release();
 }
 
-void CHelicopter::Set_Active(bool Active)
-{
-	if (m_pShader)
-	{
-		m_pShader->SetActive(Active);
-	}
-}
 
 void CHelicopter::Set_Shader(CShader* pShader)
 {
-	pShader->AddRef();
 	m_pShader = pShader;
 }
 
@@ -1490,9 +1422,10 @@ void CHelicopter::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 
 		if (m_bCollision)
 		{
-			m_bCollision = false;
+  			m_bCollision = false;
 			m_pShader->SetActive(true);
 			m_pShader->SetPosition(GetPosition());
+			
 		}
 		m_pShader->AnimateObjects(fTimeElapsed);
 	}

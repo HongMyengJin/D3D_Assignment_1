@@ -468,18 +468,24 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
     {
         for (int i = 0; i < floor(float(m_nObjects) / float(nColumnSize)); i++)
         {
+			CMultiSpriteObjectsShader* pMultiSpriteObjectShader = new CMultiSpriteObjectsShader();
+			pMultiSpriteObjectShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+			pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, nullptr);
+			pMultiSpriteObjectShader->SetActive(false);
 			if (nObjects % 2)
 			{
 				m_ppObjects[nObjects] = new CSuperCobraObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pSuperCobraModel);
-				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
+
+
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pMultiSpriteObjectShader);
 				pSuperCobraModel->AddRef();
 			}
 			else
 			{
 				m_ppObjects[nObjects] = new CGunshipObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pGunshipModel);
-				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pMultiSpriteObjectShader);
 				pGunshipModel->AddRef();
 			}
 			XMFLOAT3 xmf3RandomPosition = RandomPositionInSphere(XMFLOAT3(920.0f, -165.f, 1200.0f), Random(20.0f, 150.0f), h - int(floor(nColumnSize / 2.0f)), nColumnSpace);
@@ -493,18 +499,22 @@ void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsComman
     {
         for (int i = 0; i < m_nObjects - int(floor(float(m_nObjects) / float(nColumnSize)) * nFirstPassColumnSize); i++)
         {
+			CMultiSpriteObjectsShader* pMultiSpriteObjectShader = new CMultiSpriteObjectsShader();
+			pMultiSpriteObjectShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+			pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, nullptr);
+			pMultiSpriteObjectShader->SetActive(false);
 			if (nObjects % 2)
 			{
 				m_ppObjects[nObjects] = new CSuperCobraObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pSuperCobraModel);
-				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pMultiSpriteObjectShader);
 				pSuperCobraModel->AddRef();
 			}
 			else
 			{
 				m_ppObjects[nObjects] = new CGunshipObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 				m_ppObjects[nObjects]->SetChild(pGunshipModel);
-				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pContext);
+				static_cast<CHelicopter*>(m_ppObjects[nObjects])->Set_Shader((CShader*)pMultiSpriteObjectShader);
 				pGunshipModel->AddRef();
 			}
 			XMFLOAT3 xmf3RandomPosition = RandomPositionInSphere(XMFLOAT3(920.0f, -165.f, 1200.0f), Random(20.0f, 150.0f), nColumnSize - int(floor(nColumnSize / 2.0f)), nColumnSpace);
@@ -953,6 +963,15 @@ CMultiSpriteObjectsShader::~CMultiSpriteObjectsShader()
 {
 }
 
+void CMultiSpriteObjectsShader::SetActive(bool bActive)
+{
+	m_bActive = bActive;
+
+	for(int i = 0; i < 2; i++)
+		if (m_ppObjects[i])
+			m_ppObjects[i]->m_bActive = bActive;
+}
+
 D3D12_RASTERIZER_DESC CMultiSpriteObjectsShader::CreateRasterizerState()
 {
 	D3D12_RASTERIZER_DESC d3dRasterizerDesc;
@@ -1075,7 +1094,7 @@ void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandLis
 		//XMFLOAT3 xmf3Position = Vector3::Add(xmf3PlayerPosition, Vector3::ScalarProduct(xmf3PlayerLook, 50.0f, false));
 		for (int j = 0; j < m_nObjects; j++)
 		{
-			if (m_ppObjects[j])
+			if (m_ppObjects[j]->m_bActive)
 			{
 				//m_ppObjects[j]->SetPosition(xmf3Position);
 				m_ppObjects[j]->SetLookAt(xmf3CameraPosition, XMFLOAT3(0.0f, 1.0f, 0.0f));
