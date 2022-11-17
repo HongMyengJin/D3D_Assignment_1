@@ -350,8 +350,7 @@ void CAirplanePlayer::Fire_Bullet()
 		{
 			// 일단 플레이어 위치로 변환
 			m_vecBullet[i]->SetPosition(GetPosition());
-			//m_vecBullet[i]->SetLookAt(GetLookVector());
-			m_vecBullet[i]->Set_Rotation(m_fPitch, m_fYaw, m_fRoll);
+			m_vecBullet[i]->Set_BulletRotation(m_xmf3Right, m_xmf3Up, m_xmf3Look);
 			m_vecBullet[i]->Set_Direct(GetLookVector());
 			m_vecBullet[i]->Set_Active(true);
 			break;

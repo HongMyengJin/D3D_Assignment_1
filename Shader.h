@@ -140,6 +140,8 @@ public:
 
 	virtual bool CollisionCheck(CGameObject* pObject);
 
+	void		 Chase_Object(float fTimeElapsed, CGameObject* pObject = nullptr, float fDistance = 100.f);
+	void		 Collision_CheckObject(float fTimeElapsed);
 	CHelicopter						**m_ppObjects = 0;
 protected:
 	int								m_nObjects = 0;

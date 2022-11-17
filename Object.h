@@ -215,6 +215,8 @@ public:
 
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_d3dCbvGPUDescriptorHandle;
 
+	bool							m_bMove = false;
+
 	virtual void SetMesh(int nIndex, CMesh* pMesh);
 	void SetShader(int nMaterial, CShader *pShader);
 	void SetMaterial(int nMaterial, CMaterial *pMaterial);
@@ -241,6 +243,8 @@ public:
 	void SetCbvGPUDescriptorHandle(D3D12_GPU_DESCRIPTOR_HANDLE d3dCbvGPUDescriptorHandle) { m_d3dCbvGPUDescriptorHandle = d3dCbvGPUDescriptorHandle; }
 	void SetCbvGPUDescriptorHandlePtr(UINT64 nCbvGPUDescriptorHandlePtr) { m_d3dCbvGPUDescriptorHandle.ptr = nCbvGPUDescriptorHandlePtr; }
 
+	void Set_Move(bool Move);
+	bool Get_Move();
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetLook();
 	XMFLOAT3 GetUp();
@@ -452,8 +456,10 @@ public:
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent);
 	void Set_Active(bool bActive);
 	bool Get_Active();
-
+	
 	void Set_Direct(XMFLOAT3 Direct);
+	void Set_BulletRotation(const XMFLOAT3 f3Right, const XMFLOAT3 f3Up, const XMFLOAT3 f3Look);
+
 private:
 
 	XMFLOAT3	m_xmf3Direct = XMFLOAT3(0.f, 0.f, 0.f);

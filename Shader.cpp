@@ -538,7 +538,7 @@ void CObjectsShader::ReleaseObjects()
 
 void CObjectsShader::AnimateObjects(float fTimeElapsed)
 {
-
+	Collision_CheckObject(fTimeElapsed);
 }
 
 void CObjectsShader::ReleaseUploadBuffers()
@@ -579,6 +579,64 @@ bool CObjectsShader::CollisionCheck(CGameObject* pObject)
 		}
 	}
 	return false;
+}
+
+void CObjectsShader::Chase_Object(float fTimeElapsed, CGameObject* pObject, float fDistance)
+{
+	if (pObject) {
+		
+		for (int i = 0; i < m_nObjects; i++) {
+			float fDis = Vector3::Length(Vector3::Subtract(m_ppObjects[i]->GetPosition(), pObject->GetPosition()));
+
+			if ( 30.f <  fDis && fDistance > fDis && m_ppObjects[i]->Get_Move()) {
+				
+				XMFLOAT3 Cross = Vector3::CrossProduct(Vector3::ScalarProduct(m_ppObjects[i]->GetLook(), -1), Vector3::Subtract(m_ppObjects[i]->GetPosition(), pObject->GetPosition()));
+				m_ppObjects[i]->SetPosition(Vector3::Add(m_ppObjects[i]->GetPosition(), Vector3::Normalize(Vector3::Subtract(pObject->GetPosition(), m_ppObjects[i]->GetPosition())), fTimeElapsed * 15.f));
+
+				if (Cross.y > 0)
+				{
+					m_ppObjects[i]->Rotate(0.f, 3.f, 0.f);
+					Cross = Vector3::CrossProduct(Vector3::ScalarProduct(m_ppObjects[i]->GetLook(), -1), Vector3::Subtract(m_ppObjects[i]->GetPosition(), pObject->GetPosition()));
+
+					if (Cross.y <= 0)
+					{
+						m_ppObjects[i]->Rotate(0.f, -3.f, 0.f);
+					}
+				}
+				else
+				{
+					m_ppObjects[i]->Rotate(0.f, -3.f, 0.f);
+					Cross = Vector3::CrossProduct(Vector3::ScalarProduct(m_ppObjects[i]->GetLook(), -1), Vector3::Subtract(m_ppObjects[i]->GetPosition(), pObject->GetPosition()));
+
+					if (Cross.y > 0)
+					{
+						m_ppObjects[i]->Rotate(0.f, 3.f, 0.f);
+					}
+				}
+			}
+		}
+	}
+}
+
+void CObjectsShader::Collision_CheckObject(float fTimeElapsed)
+{
+	for (int i = 0; i < m_nObjects; i++)
+	{
+		m_ppObjects[i]->Set_Move(true);
+	}
+
+	for (int i = 0; i < m_nObjects; i++) 
+	{
+		for (int j = i + 1; j < m_nObjects; j++) 
+		{
+			if (17.f > Vector3::Length(Vector3::Subtract(m_ppObjects[i]->GetPosition(), m_ppObjects[j]->GetPosition())))
+			{
+				m_ppObjects[i]->Set_Move(false);
+			}
+
+		}
+	}
+
 }
 
 

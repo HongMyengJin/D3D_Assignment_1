@@ -566,6 +566,16 @@ void CGameObject::SetScale(float x, float y, float z)
 	UpdateTransform(NULL);
 }
 
+void CGameObject::Set_Move(bool Move)
+{
+	m_bMove = Move;
+}
+
+bool CGameObject::Get_Move()
+{
+	return m_bMove;
+}
+
 XMFLOAT3 CGameObject::GetPosition()
 {
 	return(XMFLOAT3(m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43));
@@ -1007,7 +1017,7 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	m_nWidth = nWidth;
 	m_nLength = nLength;
 
-	int cxQuadsPerBlock = nBlockWidth - 1;
+	int cxQuadsPerBlock = nBlockWidth - 1; 
 	int czQuadsPerBlock = nBlockLength - 1;
 
 	m_xmf3Scale = xmf3Scale;
@@ -1382,6 +1392,13 @@ void CBullet::Set_Direct(XMFLOAT3 Direct)
 	m_xmf3Direct = Direct;
 }
 
+void CBullet::Set_BulletRotation(const XMFLOAT3 f3Right, const XMFLOAT3 f3Up, const XMFLOAT3 f3Look)
+{
+	m_xmf4x4Transform._11 = f3Right.x; m_xmf4x4Transform._12 = f3Right.y; m_xmf4x4Transform._13 = f3Right.z;
+	m_xmf4x4Transform._21 = f3Up.x; m_xmf4x4Transform._22 = f3Up.y; m_xmf4x4Transform._23 = f3Up.z;
+	m_xmf4x4Transform._31 = f3Look.x; m_xmf4x4Transform._32 = f3Look.y; m_xmf4x4Transform._33 = f3Look.z;
+}
+
 CHelicopter::CHelicopter(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) :CGameObject(1, 1)
 {
 	m_xmOOBB.Extents = {5.f, 5.f, 10.f};
@@ -1425,7 +1442,6 @@ void CHelicopter::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
   			m_bCollision = false;
 			m_pShader->SetActive(true);
 			m_pShader->SetPosition(GetPosition());
-			
 		}
 		m_pShader->AnimateObjects(fTimeElapsed);
 	}
