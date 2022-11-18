@@ -1370,10 +1370,12 @@ void CBullet::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 			m_fMoveValue = 0.f;
 			Set_Active(false);
 		}
-		//if (m_bCollision) // 충돌이 있으면
-		//{
-		//	m_bActive = false;
-		//}
+		if (m_bCollision) // 충돌이 있으면
+		{
+			m_fMoveValue = 0.f;
+			Set_Active(false);
+			m_bCollision = false;
+		}
 	}
 }
 
