@@ -85,6 +85,7 @@ struct VS_STANDARD_OUTPUT
 	float2 uv : TEXCOORD;
 };
 
+
 VS_STANDARD_OUTPUT VSStandard(VS_STANDARD_INPUT input)
 {
 	VS_STANDARD_OUTPUT output;
@@ -366,4 +367,71 @@ VS_DIFFUSED_OUTPUT VSCube(VS_DIFFUSED_INPUT input)
 float4 PSCube(VS_DIFFUSED_OUTPUT input) : SV_TARGET
 {
 	return(input.color);
+}
+
+struct VS_IN
+{
+	float3 posW : POSITION;
+	float2 sizeW : SIZE;
+};
+struct VS_OUT
+{
+	float3 centerW : POSITION;
+	float2 sizeW : SIZE;
+};
+
+
+
+struct GS_OUT
+{
+	float4 posH :SV_POSITION;
+	float3 posW : POSITION;
+	float3 normalW : NORMAL;
+	float2 uv : TEXCOORD;
+	uint primID : SV_PrimitiveID;
+};
+
+// ±‚«œΩ¶¿Ã¥ı
+[maxvertexcount(4)]
+void GS(point VS_OUT input[1], uint primID : SV_PrimitiveID, inout TriangleStream<GS_OUT> outStream)
+{
+	float3 vUp = float3(0.f, 1.f, 0.f);
+	float3 vLook = gvCameraPosition.xyz - input[0].centerW;
+	vLook = normalize(vLook);
+	float vRight = cross(vUp, vLook);
+	float fHalfW = input[0].sizeW.x * 0.5f;
+	float fHalfH = input[0].sizeW.y * 0.5f;
+	float4 pVertices[4];
+	pVertices[0] = float4(input[0].centerW + fHalfW * vRight - fHalfH * vUp, 1.f);
+	pVertices[1] = float4(input[0].centerW + fHalfW * vRight + fHalfH * vUp, 1.f);
+	pVertices[2] = float4(input[0].centerW - fHalfW * vRight - fHalfH * vUp, 1.f);
+	pVertices[3] = float4(input[0].centerW - fHalfW * vRight + fHalfH * vUp, 1.f);
+	float2 pUVs[4] = { float2(0.f, 1.f), float2(0.f, 0.f), float2(1.f, 1.f), float2(1.f, 0.f) };
+	GS_OUT output;
+	for (int i = 0; i < 4; i++) {
+		output.posW = pVertices[i].xyz;
+		output.posH = mul(pVertices[i], gmtxProjection);
+		output.normalW = vLook;
+		output.uv = pUVs[i];
+		output.primID = primID;
+		outStream.Append(output);
+	}
+}
+
+float4 PS(GS_OUT input) : SV_Target
+{
+	float4 clllumination = Lighting(input.posW, input.normalW);
+	float3 uvw = float3(input.uv, (input.primID % 4));
+	float4 cTexture = gtxtTexture.Sample(gssWrap, uvw);
+	float4 cColor = clllumination * cTexture;
+	cColor.a = cTexture.a;
+	return (cColor);
+}
+
+VS_OUT VS(VS_IN input)
+{
+	VS_OUT output;
+	output.centerW = input.posW;
+	output.sizeW = input.sizeW;
+	return output;
 }

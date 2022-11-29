@@ -34,6 +34,18 @@ public:
 	CVertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
 	~CVertex() { }
 };
+// 기하쉐이더 적용 Vertex
+class CTreeVertex
+{
+public:
+	XMFLOAT3						m_xmf3Position;
+	XMFLOAT2						m_xmf2Size;
+public:
+	CTreeVertex() { }
+	CTreeVertex(XMFLOAT3 xmf3Position, XMFLOAT2 xmf2Size) {m_xmf3Position = xmf3Position; m_xmf2Size = xmf2Size;}
+	~CTreeVertex() { }
+};
+
 
 class CDiffusedVertex : public CVertex
 {
@@ -209,6 +221,45 @@ public:
 
 	virtual void ReleaseUploadBuffers();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, int nSubSet);
+};
+
+class GSSpriteMesh : public CMesh
+{
+public:
+	GSSpriteMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, class CHeightMapTerrain* pTerrain);
+	virtual ~GSSpriteMesh();
+
+private:
+	int								m_nReferences = 0;
+
+public:
+	void AddRef() { m_nReferences++; }
+	void Release() { if (--m_nReferences <= 0) delete this; }
+
+	void ReleaseUploadBuffers();
+
+protected:
+	ID3D12Resource* m_pd3dVertexBuffer = NULL;
+	ID3D12Resource* m_pd3dVertexUploadBuffer = NULL;
+
+	ID3D12Resource* m_pd3dIndexBuffer = NULL;
+	ID3D12Resource* m_pd3dIndexUploadBuffer = NULL;
+
+	D3D12_VERTEX_BUFFER_VIEW		m_d3dVertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW			m_d3dIndexBufferView;
+
+	D3D12_PRIMITIVE_TOPOLOGY		m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	UINT							m_nSlot = 0;
+	UINT							m_nVertices = 0;
+	UINT							m_nStride = 0;
+	UINT							m_nOffset = 0;
+
+	UINT							m_nIndices = 0;
+	UINT							m_nStartIndex = 0;
+	int								m_nBaseVertex = 0;
+
+public:
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 };
 
 class CSpriteMesh : public CMesh

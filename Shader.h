@@ -24,6 +24,7 @@ public:
 	bool GetActive() { return(m_bActive); }
 
 protected:
+	ID3DBlob*							m_pd3dGsShaderBlob = NULL;
 	ID3DBlob*							m_pd3dVertexShaderBlob = NULL;
 	ID3DBlob*							m_pd3dPixelShaderBlob = NULL;
 
@@ -53,7 +54,7 @@ public:
 
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
-
+	virtual D3D12_SHADER_BYTECODE CreateGsShader();
 	D3D12_SHADER_BYTECODE CompileShaderFromFile(WCHAR *pszFileName, LPCSTR pszShaderName, LPCSTR pszShaderProfile, ID3DBlob **ppd3dShaderBlob);
 	D3D12_SHADER_BYTECODE ReadCompiledShaderFromFile(WCHAR *pszFileName, ID3DBlob **ppd3dShaderBlob=NULL);
 
@@ -224,15 +225,21 @@ public:
 	CBillboardObjectsShader();
 	virtual ~CBillboardObjectsShader();
 
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+
 	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
 	virtual D3D12_BLEND_DESC CreateBlendState();
 
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
 	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext = NULL);
 	virtual void ReleaseObjects();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState);
 
 	virtual void ReleaseUploadBuffers();
 
+	virtual D3D12_SHADER_BYTECODE CreateGsShader();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
 #ifdef _WITH_BATCH_MATERIAL
 	CMaterial* m_ppGrassMaterials[2] = { NULL, NULL };

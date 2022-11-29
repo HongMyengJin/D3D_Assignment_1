@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "Mesh.h"
+#include "Object.h"
 
 CMesh::CMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList)
 {
@@ -1071,4 +1072,55 @@ CCubeMeshTextured::CCubeMeshTextured(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 
 CCubeMeshTextured::~CCubeMeshTextured()
 {
+}
+
+
+GSSpriteMesh::GSSpriteMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CHeightMapTerrain* pTerrain) : CMesh(pd3dDevice, pd3dCommandList)
+{
+	int nTreeN = 10;
+	m_nStride = sizeof(CTreeVertex);
+	m_nVertices = nTreeN; // 개수
+	XMFLOAT3	xmf3Position;
+	CTreeVertex** pTreeVertices = new CTreeVertex*[nTreeN];
+
+	int nTerrainWidth = int(pTerrain->GetWidth());
+	int nTerrainLength = int(pTerrain->GetLength());
+
+	XMFLOAT3 xmf3Scale = pTerrain->GetScale();
+	for (int i = 0; i < nTreeN; i++)
+	{
+		float fxTerrain = xmf3Position.x = rand() % nTerrainWidth;
+		float fzTerrain = xmf3Position.z = rand() % nTerrainLength;
+		xmf3Position.y = pTerrain->GetHeight(fxTerrain, fzTerrain, false) + 6.f;
+		pTreeVertices[i] = new CTreeVertex(xmf3Position, XMFLOAT2(20.f, 50.f));
+	}
+
+	m_pd3dPositionBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pTreeVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dPositionUploadBuffer);
+
+	m_d3dPositionBufferView.BufferLocation = m_pd3dPositionBuffer->GetGPUVirtualAddress();
+	m_d3dPositionBufferView.StrideInBytes = m_nStride;
+	m_d3dPositionBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+}
+
+GSSpriteMesh::~GSSpriteMesh()
+{
+}
+
+void GSSpriteMesh::ReleaseUploadBuffers()
+{
+	if (m_pd3dPositionUploadBuffer) m_pd3dPositionUploadBuffer->Release();
+	m_pd3dPositionUploadBuffer = NULL;
+}
+
+void GSSpriteMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	pd3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[1] = { m_d3dPositionBufferView };
+	pd3dCommandList->IASetVertexBuffers(m_nSlot, 1, pVertexBufferViews);
+
+	pd3dCommandList->DrawInstanced(6, 2, m_nOffset, 0); // 2가 맞을까?
+
+
 }
