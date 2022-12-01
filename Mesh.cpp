@@ -1091,11 +1091,11 @@ GSSpriteMesh::GSSpriteMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 	{
 		float fxTerrain = xmf3Position.x = rand() % nTerrainWidth;
 		float fzTerrain = xmf3Position.z = rand() % nTerrainLength;
-		xmf3Position.y = pTerrain->GetHeight(fxTerrain, fzTerrain, false) + 6.f;
-		pTreeVertices[i] = new CTreeVertex(xmf3Position, XMFLOAT2(20.f, 50.f));
+		xmf3Position.y = pTerrain->GetHeight(fxTerrain, fzTerrain, false) + 20.f;
+		pTreeVertices[i] = new CTreeVertex(xmf3Position, XMFLOAT2(5.f, 1.f));
 	}
 
-	m_pd3dPositionBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pTreeVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dPositionUploadBuffer);
+	m_pd3dPositionBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, *pTreeVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dPositionUploadBuffer);
 
 	m_d3dPositionBufferView.BufferLocation = m_pd3dPositionBuffer->GetGPUVirtualAddress();
 	m_d3dPositionBufferView.StrideInBytes = m_nStride;
@@ -1113,14 +1113,14 @@ void GSSpriteMesh::ReleaseUploadBuffers()
 	m_pd3dPositionUploadBuffer = NULL;
 }
 
-void GSSpriteMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList)
+void GSSpriteMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubSet)
 {
-	pd3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pd3dCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	D3D12_VERTEX_BUFFER_VIEW pVertexBufferViews[1] = { m_d3dPositionBufferView };
 	pd3dCommandList->IASetVertexBuffers(m_nSlot, 1, pVertexBufferViews);
 
-	pd3dCommandList->DrawInstanced(6, 2, m_nOffset, 0); // 2가 맞을까?
+	pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0); // 2가 맞을까?
 
 
 }

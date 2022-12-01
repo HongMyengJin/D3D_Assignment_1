@@ -235,16 +235,20 @@ public:
 	virtual void ReleaseObjects();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState);
 
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void ReleaseUploadBuffers();
 
 	virtual D3D12_SHADER_BYTECODE CreateGsShader();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
-#ifdef _WITH_BATCH_MATERIAL
+	GSSpriteMesh** pGrassMesh;
+//#ifdef _WITH_BATCH_MATERIAL
 	CMaterial* m_ppGrassMaterials[2] = { NULL, NULL };
 	CMaterial* m_ppFlowerMaterials[2] = { NULL, NULL };
-#endif
+	CMaterial* m_ppTreeMaterials[3] = { NULL, NULL, NULL };
+//#endif
 };
 
 class CMultiSpriteObjectsShader : public CSpriteObjectsShader

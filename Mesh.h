@@ -259,7 +259,7 @@ protected:
 	int								m_nBaseVertex = 0;
 
 public:
-	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, int s);
 };
 
 class CSpriteMesh : public CMesh

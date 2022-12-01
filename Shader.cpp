@@ -909,59 +909,30 @@ void CBillboardObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12Graph
 	ppTreeTextures[2]->LoadTextureFromDDSFile(pd3dDevice, pd3dCommandList, L"Image/Tree03.dds", RESOURCE_TEXTURE2D, 0);
 
 	CMaterial* ppGrassMaterials[2];
-	ppGrassMaterials[0] = new CMaterial();
-	ppGrassMaterials[0]->SetTexture(ppGrassTextures[0]);
-	ppGrassMaterials[1] = new CMaterial();
-	ppGrassMaterials[1]->SetTexture(ppGrassTextures[1]);
+	m_ppGrassMaterials[0] = new CMaterial();
+	m_ppGrassMaterials[0]->SetTexture(ppGrassTextures[0]);
+	m_ppGrassMaterials[1] = new CMaterial();
+	m_ppGrassMaterials[1]->SetTexture(ppGrassTextures[1]);
 
 	CMaterial* ppFlowerMaterials[2];
-	ppFlowerMaterials[0] = new CMaterial();
-	ppFlowerMaterials[0]->SetTexture(ppFlowerTextures[0]);
-	ppFlowerMaterials[1] = new CMaterial();
-	ppFlowerMaterials[1]->SetTexture(ppFlowerTextures[1]);
+	m_ppFlowerMaterials[0] = new CMaterial();
+	m_ppFlowerMaterials[0]->SetTexture(ppFlowerTextures[0]);
+	m_ppFlowerMaterials[1] = new CMaterial();
+	m_ppFlowerMaterials[1]->SetTexture(ppFlowerTextures[1]);
 
 	CMaterial* ppTreeMaterials[3];
-	ppTreeMaterials[0] = new CMaterial();
-	ppTreeMaterials[0]->SetTexture(ppTreeTextures[0]);
-	ppTreeMaterials[1] = new CMaterial();
-	ppTreeMaterials[1]->SetTexture(ppTreeTextures[1]);
-	ppTreeMaterials[2] = new CMaterial();
-	ppTreeMaterials[2]->SetTexture(ppTreeTextures[2]);
-
-	//CTexturedRectMesh* pGrassMesh = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 8.0f, 8.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	//CTexturedRectMesh* pFlowerMesh = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 8.0f, 16.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	//CTexturedRectMesh* pTreeMesh01 = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 24.0f, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	//CTexturedRectMesh* pTreeMesh02 = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 16.0f, 46.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	m_ppTreeMaterials[0] = new CMaterial();
+	m_ppTreeMaterials[0]->SetTexture(ppTreeTextures[0]);
+	m_ppTreeMaterials[1] = new CMaterial();
+	m_ppTreeMaterials[1]->SetTexture(ppTreeTextures[1]);
+	m_ppTreeMaterials[2] = new CMaterial();
+	m_ppTreeMaterials[2]->SetTexture(ppTreeTextures[2]);
 
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext;
 
-	GSSpriteMesh* pGrassMesh = new GSSpriteMesh(pd3dDevice, pd3dCommandList, pTerrain);
-	GSSpriteMesh* pFlowerMesh = new GSSpriteMesh(pd3dDevice, pd3dCommandList, pTerrain);
-	GSSpriteMesh* pTreeMesh01 = new GSSpriteMesh(pd3dDevice, pd3dCommandList, pTerrain);
-	GSSpriteMesh* pTreeMesh02 = new GSSpriteMesh(pd3dDevice, pd3dCommandList, pTerrain);
 	CRawFormatImage* pRawFormatImage = new CRawFormatImage(L"Image/ObjectsMap.raw", 257, 257, true);
 
-	int nGrassObjects = 0, nFlowerObjects = 0, nBlacks = 0, nOthers = 0, nTreeObjects[3] = { 0, 0, 0 };
-	for (int z = 2; z <= 254; z++)
-	{
-		for (int x = 2; x <= 254; x++)
-		{
-			BYTE nPixel = pRawFormatImage->GetRawImagePixel(x, z);
-			switch (nPixel)
-			{
-			case 102: nGrassObjects++; break;
-			case 128: nGrassObjects++; break;
-			case 153: nFlowerObjects++; break;
-			case 179: nFlowerObjects++; break;
-			case 204: nTreeObjects[0]++; break;
-			case 225: nTreeObjects[1]++; break;
-			case 255: nTreeObjects[2]++; break;
-			case 0: nBlacks++; break;
-			default: nOthers++; break;
-			}
-		}
-	}
-	m_nObjects = nGrassObjects + nFlowerObjects + nTreeObjects[0] + nTreeObjects[1] + nTreeObjects[2];
+	pGrassMesh = new GSSpriteMesh*[7]; // 개수만큼
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
@@ -976,84 +947,16 @@ void CBillboardObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12Graph
 	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[1], 0, PARAMETER_SPRITE_TEXTURE);
 	CreateShaderResourceViews(pd3dDevice, ppTreeTextures[2], 0, PARAMETER_SPRITE_TEXTURE);
 
+	GSSpriteMesh* pBillboardObject = NULL;
 
-	int nTerrainWidth = int(pTerrain->GetWidth());
-	int nTerrainLength = int(pTerrain->GetLength());
-
-	XMFLOAT3 xmf3Scale = pTerrain->GetScale();
-
-	m_ppObjects = new CGameObject * [m_nObjects];
-
-	CGrassObject* pBillboardObject = NULL;
-	for (int nObjects = 0, z = 2; z <= 254; z++)
+	for(int i = 0; i < 7; i++)
 	{
-		for (int x = 2; x <= 254; x++)
-		{
-			BYTE nPixel = pRawFormatImage->GetRawImagePixel(x, z);
-
-			float fyOffset = 0.0f;
-
-			CMaterial* pMaterial = NULL;
-			CMesh* pMesh = NULL;
-
-			switch (nPixel)
-			{
-			case 102:
-				pMesh = pGrassMesh;
-				pMaterial = ppGrassMaterials[0];
-				fyOffset = 8.0f * 0.5f;
-				break;
-			case 128:
-				pMesh = pGrassMesh;
-				pMaterial = ppGrassMaterials[1];
-				fyOffset = 6.0f * 0.5f;
-				break;
-			case 153:
-				pMesh = pFlowerMesh;
-				pMaterial = ppFlowerMaterials[0];
-				fyOffset = 16.0f * 0.5f;
-				break;
-			case 179:
-				pMesh = pFlowerMesh;
-				pMaterial = ppFlowerMaterials[1];
-				fyOffset = 16.0f * 0.5f;
-				break;
-			case 204:
-				pMesh = pTreeMesh01;
-				pMaterial = ppTreeMaterials[0];
-				fyOffset = 33.0f * 0.5f;
-				break;
-			case 225:
-				pMesh = pTreeMesh01;
-				pMaterial = ppTreeMaterials[1];
-				fyOffset = 33.0f * 0.5f;
-				break;
-			case 255:
-				pMesh = pTreeMesh02;
-				pMaterial = ppTreeMaterials[2];
-				fyOffset = 40.0f * 0.5f;
-				break;
-			default:
-				break;
-			}
-
-			if (pMesh && pMaterial)
-			{
-				pBillboardObject = new CGrassObject();
-
-				pBillboardObject->SetMesh(0, pMesh);
-				pBillboardObject->SetMaterial(0,pMaterial);
-
-				float xPosition = x * xmf3Scale.x;
-				float zPosition = z * xmf3Scale.z;
-				float fHeight = pTerrain->GetHeight(xPosition, zPosition);
-				pBillboardObject->SetPosition(xPosition, fHeight + fyOffset, zPosition);
-				pBillboardObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
-
-				m_ppObjects[nObjects++] = pBillboardObject;
-			}
-		}
+		pBillboardObject = new GSSpriteMesh(pd3dDevice, pd3dCommandList, pTerrain);
+		pGrassMesh[i] = pBillboardObject;
 	}
+
+
+
 }
 
 void CBillboardObjectsShader::ReleaseUploadBuffers()
@@ -1085,15 +988,43 @@ void CBillboardObjectsShader::ReleaseObjects()
 
 void CBillboardObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
 {
-	XMFLOAT3 xmf3CameraPosition = pCamera->GetPosition();
-	for (int j = 0; j < m_nObjects; j++)
-	{
-		if (m_ppObjects[j]) m_ppObjects[j]->SetLookAt(xmf3CameraPosition, XMFLOAT3(0.0f, 1.0f, 0.0f));
-	}
+	CShader::Render(pd3dCommandList, pCamera, nPipelineState);
 
-	CSpriteObjectsShader::Render(pd3dCommandList, pCamera, 0);
+	if (m_ppGrassMaterials[0])
+	{
+		if (m_ppGrassMaterials[0]->m_pShader) m_ppGrassMaterials[0]->m_pShader->Render(pd3dCommandList, pCamera);
+		m_ppGrassMaterials[0]->UpdateShaderVariables(pd3dCommandList);
+	}
+	for (int i = 0; i < 7; i++) {
+		if (pGrassMesh[i])
+			pGrassMesh[i]->Render(pd3dCommandList, 0);
+	}
+	
 }
 
+void CBillboardObjectsShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	UINT ncbElementBytes = ((sizeof(GSSpriteMesh) + 255) & ~255); //256의 배수
+	m_pd3dcbGameObjects = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes * 10, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+
+	m_pd3dcbGameObjects->Map(0, NULL, (void**)&pGrassMesh);
+}
+
+void CBillboardObjectsShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	UINT ncbElementBytes = ((sizeof(GSSpriteMesh) + 255) & ~255);
+	for (int j = 0; j < m_nObjects; j++)
+	{
+		CB_GAMEOBJECT_INFO* pbMappedcbGameObject = (CB_GAMEOBJECT_INFO*)((UINT8*)m_pcbMappedGameObjects + (j * ncbElementBytes));
+		XMStoreFloat4x4(&pbMappedcbGameObject->m_xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&m_ppObjects[j]->m_xmf4x4World)));
+		if (m_ppObjects[j]->m_ppMaterials[0] && m_ppObjects[j]->m_ppMaterials[0]->m_pTexture)
+		{
+			XMStoreFloat4x4(&pbMappedcbGameObject->m_xmf4x4Texture, XMMatrixTranspose(XMLoadFloat4x4(&(m_ppObjects[j]->m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture))));
+		}
+	}
+}
+
+	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CMultiSpriteObjectsShader::CMultiSpriteObjectsShader()
 {
