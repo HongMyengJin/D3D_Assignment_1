@@ -136,8 +136,8 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
 
 	float4 cColor = cAlbedoColor + cSpecularColor + cEmissionColor;
 
-	//if (cAlbedoColor.a < 0.95)
-	//	cColor.a = 0.32;
+	if (cAlbedoColor.a < 0.95)
+		cColor.a = 0.32;
 	if (gnTexturesMask & MATERIAL_NORMAL_MAP)
 	{
 		float3 normalW = input.normalW;
