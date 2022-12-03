@@ -602,6 +602,16 @@ void CGameFramework::FrameAdvance()
 
 		//m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
 
+		m_pd3dCommandList->ClearDepthStencilView(m_d3dDsvDescriptorCPUHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
+
+		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+
+		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera, m_GameTimer.GetTotalTime(), m_GameTimer.GetTimeElapsed());
+
+		m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+
+		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
 		m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
 
 		m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
