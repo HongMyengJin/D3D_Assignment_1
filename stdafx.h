@@ -69,7 +69,7 @@ using Microsoft::WRL::ComPtr;
 #define PARAMETER_SPRITE_TEXTURE 6
 #define PARAMETER_WATER_TEXTURE 7
 #define FAMEWORKINFO_PARAMETER	8
-
+#define SPRITE_MATRIX_PARAMETER 9 
 
 
 #pragma comment(lib, "d3dcompiler.lib")

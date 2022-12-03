@@ -144,6 +144,7 @@ void CScene::ReleaseObjects()
 	}
 
 	if (m_pLights) delete[] m_pLights;
+
 }
 
 ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevice)
@@ -230,6 +231,18 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	pd3dDescriptorRanges[4].RegisterSpace = 0;
 	pd3dDescriptorRanges[4].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
+
+//#define PARAMETER_STANDARD_TEXTURE		3
+//#ifdef _WITH_STANDARD_TEXTURE_MULTIPLE_DESCRIPTORS
+//#define PARAMETER_SKYBOX_CUBE_TEXTURE	4
+//#else
+//#define PARAMETER_SKYBOX_CUBE_TEXTURE	4
+//#endif
+//
+//#define PARAMETER_TERRAIN_TEXTURE 5
+//#define PARAMETER_SPRITE_TEXTURE 6
+//#define PARAMETER_WATER_TEXTURE 7
+//#define FAMEWORKINFO_PARAMETER	8
 	D3D12_ROOT_PARAMETER pd3dRootParameters[11];
 
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
@@ -461,16 +474,16 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	if (m_pSkyBox) m_pSkyBox->Render(pd3dCommandList, pCamera);
 
 	
-	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
-	if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
+	//if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
+	//if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
 
 
-	if (m_pPlayer) static_cast<CAirplanePlayer*>(m_pPlayer)->Bullet_Render(pd3dCommandList, pCamera);
-	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
-	
+	//if (m_pPlayer) static_cast<CAirplanePlayer*>(m_pPlayer)->Bullet_Render(pd3dCommandList, pCamera);
+	//for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
+	//
 
-	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);
-	if (m_pPlayer) m_pPlayer->Render(pd3dCommandList, pCamera);
+	//for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);
+	//if (m_pPlayer) m_pPlayer->Render(pd3dCommandList, pCamera);
 
 
 }

@@ -1147,7 +1147,7 @@ void CMultiSpriteObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCom
 	
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(&(m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture))));
 	/*pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 33);*/ // => 추후에 확인
-	pd3dCommandList->SetGraphicsRoot32BitConstants(9, 16, &xmf4x4World, 0);
+	pd3dCommandList->SetGraphicsRoot32BitConstants(SPRITE_MATRIX_PARAMETER, 16, &xmf4x4World, 0);
 
 }
 

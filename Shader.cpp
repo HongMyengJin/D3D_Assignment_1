@@ -1587,7 +1587,7 @@ ID3D12RootSignature* CPostProcessingShader::CreateGraphicsRootSignature(ID3D12De
 
 	pd3dDescriptorRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	pd3dDescriptorRanges[0].NumDescriptors = 5;
-	pd3dDescriptorRanges[0].BaseShaderRegister = 1; //Texture
+	pd3dDescriptorRanges[0].BaseShaderRegister = 3; //Texture
 	pd3dDescriptorRanges[0].RegisterSpace = 0;
 	pd3dDescriptorRanges[0].OffsetInDescriptorsFromTableStart = 0;
 
@@ -1661,6 +1661,15 @@ void CPostProcessingShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12Graphic
 
 void CPostProcessingShader::CreateResourcesAndRtvsSrvs(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, UINT nRenderTargets, DXGI_FORMAT* pdxgiFormats, UINT nWidth, UINT nHeight, D3D12_CPU_DESCRIPTOR_HANDLE d3dRtvCPUDescriptorHandle, UINT nShaderResources)
 {
+}
+
+void CPostProcessingShader::OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList, int nPipelineState)
+{
+	if (m_pd3dGraphicsRootSignature) pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
+	if (m_ppd3dPipelineStates)
+		pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[nPipelineState]);
+
+	pd3dCommandList->SetDescriptorHeaps(1, &m_pd3dCbvSrvDescriptorHeap);
 }
 
 void CPostProcessingShader::OnPrepareRenderTarget(ID3D12GraphicsCommandList* pd3dCommandList, int nRenderTargets, D3D12_CPU_DESCRIPTOR_HANDLE* pd3dRtvCPUHandles, D3D12_CPU_DESCRIPTOR_HANDLE d3dDepthStencilBufferDSVCPUHandle)
@@ -1740,9 +1749,9 @@ void CLaplacianEdgeShader::CreateResourcesAndViews(ID3D12Device* pd3dDevice, ID3
 	}
 	// (ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, UINT nIndex, UINT nResourceType, UINT nWidth, UINT nHeight, UINT nElements, UINT nMipLevels, DXGI_FORMAT dxgiFormat, D3D12_RESOURCE_FLAGS d3dResourceFlags, D3D12_RESOURCE_STATES d3dResourceStates, D3D12_CLEAR_VALUE* pd3dClearValue)
 	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, nShaderResources);
-	CreateShaderVariables(pd3dDevice, NULL);
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 #ifdef _WITH_SCENE_ROOT_SIGNATURE
-	CreateShaderResourceViews(pd3dDevice, m_pTexture, 0, 6);
+	CreateShaderResourceViews(pd3dDevice, m_pTexture, 0, 3);
 #else
 	CreateShaderResourceViews(pd3dDevice, m_pTexture, 0, 0);
 #endif
