@@ -64,7 +64,7 @@ Texture2D gtxtStandardTextures[7] : register(t6);
 
 SamplerState gssWrap : register(s0);
 
-
+Texture2D gtxtAlphaTexture : register(t1);
 Texture2D gtxtTexture : register(t0);
 struct VS_STANDARD_INPUT
 {
@@ -122,7 +122,11 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
 #endif
 
 	float4 cIllumination = float4(1.0f, 1.0f, 1.0f, 1.0f);
+
 	float4 cColor = cAlbedoColor + cSpecularColor + cEmissionColor;
+
+	if (cAlbedoColor.a < 0.95)
+		cColor.a = 0.3;
 	if (gnTexturesMask & MATERIAL_NORMAL_MAP)
 	{
 		float3 normalW = input.normalW;
@@ -236,7 +240,7 @@ float4 PSTextured(VS_SPRITE_TEXTURED_OUTPUT input, uint nPrimitiveID : SV_Primit
 //
 Texture2D gtxtTerrainTexture : register(t14);
 Texture2D gtxtDetailTexture : register(t15);
-Texture2D gtxtAlphaTexture : register(t16);
+
 
 float4 PSTerrain(VS_SPRITE_TEXTURED_OUTPUT input) : SV_TARGET
 {

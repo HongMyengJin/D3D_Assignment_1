@@ -94,7 +94,7 @@ void CCamera::GenerateViewMatrix()
 
 void CCamera::RegenerateViewMatrix()
 {
-	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
+ 	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
 	m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
@@ -281,6 +281,7 @@ void CThirdPersonCamera::Update(XMFLOAT3& xmf3LookAt, float fTimeElapsed)
 		if (fLength < 0.01f) fDistance = fLength;
 		if (fDistance > 0)
 		{
+			//xmf3LookAt.z -= 10.f;
 			m_xmf3Position = Vector3::Add(m_xmf3Position, xmf3Direction, fDistance);
 			SetLookAt(xmf3LookAt);
 		}
