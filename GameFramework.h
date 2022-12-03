@@ -87,7 +87,7 @@ private:
 
 	CLaplacianEdgeShader* m_pLaplacianEdgeDetectionShader = NULL;
 
-	int							m_nDrawOptions = 69;
+	int							m_nDrawOptions = DRAW_SCENE_COLOR;
 
 	POINT						m_ptOldCursorPos;
 

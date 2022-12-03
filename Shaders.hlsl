@@ -1,3 +1,10 @@
+#define Texture_Color 0
+#define Texture_Texture 2
+#define Texture_Normal 2
+#define Texture_Illumination 3
+#define Texture_ObjectID_zDepth 4
+#define Texture_NormalV 5
+#define Texture_Depth 6
 struct MATERIAL
 {
 	float4					m_cAmbient;
@@ -129,8 +136,8 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
 
 	float4 cColor = cAlbedoColor + cSpecularColor + cEmissionColor;
 
-	if (cAlbedoColor.a < 0.95)
-		cColor.a = 0.32;
+	//if (cAlbedoColor.a < 0.95)
+	//	cColor.a = 0.32;
 	if (gnTexturesMask & MATERIAL_NORMAL_MAP)
 	{
 		float3 normalW = input.normalW;
@@ -425,8 +432,8 @@ float4 GetColorFromDepth(float fDepth)
 	float4 cColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	if (fDepth > 1.0f) cColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	else if (fDepth < 0.00625f) cColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
-	else if (fDepth < 0.0125f) cColor = float4(0.0f, 1.0f, 0.0f, 1.0f);
+	else if (fDepth < 0.00625f) cColor = float4(1.0f, 0.0f, 0.0f, 1.0f); // 스카이박스
+	else if (fDepth < 0.0125f) cColor = float4(0.0f, 1.0f, 0.0f, 1.0f); // 모델
 	else if (fDepth < 0.025f) cColor = float4(0.0f, 0.0f, 1.0f, 1.0f);
 	else if (fDepth < 0.05f) cColor = float4(1.0f, 1.0f, 0.0f, 1.0f);
 	else if (fDepth < 0.075f) cColor = float4(0.0f, 1.0f, 1.0f, 1.0f);
@@ -471,7 +478,7 @@ float4 LaplacianEdge(float4 position)
 	*/
 	if (fObjectEdgeness == 1.0f)
 		cColor = float3(1.0f, 0.0f, 0.0f);
-	else
+	else// =>
 	{
 		cColor.g += fNormalEdgeness;
 		cColor.r += fDepthEdgeness;
@@ -500,15 +507,15 @@ float4 Outline(VS_SCREEN_RECT_TEXTURED_OUTPUT input)
 	float2 f2BottomRightUV = input.uv + float2((1.0f / gtxtStandardTextures[0].Length.x) * fHalfScaleCeil, -(1.0f / gtxtStandardTextures[0].Length.y * fHalfScaleFloor));
 	float2 f2TopLeftUV = input.uv + float2(-(1.0f / gtxtStandardTextures[0].Length.x) * fHalfScaleFloor, (1.0f / gtxtStandardTextures[0].Length.y) * fHalfScaleCeil);
 
-	float3 f3NormalV0 = gtxtStandardTextures[5].Sample(gssWrap, f2BottomLeftUV).rgb;
-	float3 f3NormalV1 = gtxtStandardTextures[5].Sample(gssWrap, f2TopRightUV).rgb;
-	float3 f3NormalV2 = gtxtStandardTextures[5].Sample(gssWrap, f2BottomRightUV).rgb;
-	float3 f3NormalV3 = gtxtStandardTextures[5].Sample(gssWrap, f2TopLeftUV).rgb;
+	float3 f3NormalV0 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomLeftUV).rgb;
+	float3 f3NormalV1 = gtxtStandardTextures[6].Sample(gssWrap, f2TopRightUV).rgb;
+	float3 f3NormalV2 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomRightUV).rgb;
+	float3 f3NormalV3 = gtxtStandardTextures[6].Sample(gssWrap, f2TopLeftUV).rgb;
 
-	float fDepth0 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomLeftUV).r;
-	float fDepth1 = gtxtStandardTextures[6].Sample(gssWrap, f2TopRightUV).r;
-	float fDepth2 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomRightUV).r;
-	float fDepth3 = gtxtStandardTextures[6].Sample(gssWrap, f2TopLeftUV).r;
+	float fDepth0 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomLeftUV).b;
+	float fDepth1 = gtxtStandardTextures[6].Sample(gssWrap, f2TopRightUV).b;
+	float fDepth2 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomRightUV).b;
+	float fDepth3 = gtxtStandardTextures[6].Sample(gssWrap, f2TopLeftUV).b;
 
 	float3 f3NormalV = f3NormalV0 * 2.0f - 1.0f;
 	float fNdotV = 1.0f - dot(f3NormalV, -input.viewSpaceDir);
@@ -521,15 +528,15 @@ float4 Outline(VS_SCREEN_RECT_TEXTURED_OUTPUT input)
 	float fDepthDifference0 = fDepth1 - fDepth0;
 	float fDepthDifference1 = fDepth3 - fDepth2;
 	float fDdgeDepth = sqrt(pow(fDepthDifference0, 2) + pow(fDepthDifference1, 2)) * 100.0f;
-	fDdgeDepth = (fDdgeDepth > 1.5f) ? 1.0f : 0.0f;
+	fDdgeDepth = (fDdgeDepth > 0.0125f) ? 1.0f : 0.0f;
 
 	float3 fNormalDifference0 = f3NormalV1 - f3NormalV0;
 	float3 fNormalDifference1 = f3NormalV3 - f3NormalV2;
 	float fEdgeNormal = sqrt(dot(fNormalDifference0, fNormalDifference0) + dot(fNormalDifference1, fNormalDifference1));
-	fEdgeNormal = (fEdgeNormal > 0.4f) ? 1.0f : 0.0f;
+	fEdgeNormal = (fEdgeNormal > 0.001f) ? 1.0f : 0.0f;
 
 	float fEdge = max(fDdgeDepth, fEdgeNormal);
-	float4 f4EdgeColor = float4(1.0f, 1.0f, 1.0f, 1.0f * fEdge);
+	float4 f4EdgeColor = float4(1.0f, 1.0f, 1.0f, 1.0f * fEdgeNormal);
 
 	float4 f4Color = gtxtStandardTextures[0].Sample(gssWrap, input.uv);
 
@@ -572,27 +579,27 @@ float4 PSScreenRectSamplingTextured(VS_SCREEN_RECT_TEXTURED_OUTPUT input) : SV_T
 		case 79: //'O'
 		{
 			uint fObjectID = (uint)gtxtStandardTextures[4].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
-			//			uint fObjectID = (uint)gtxtStandardTextures[4][int2(input.position.xy)].r;
-						if (fObjectID == 0) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
-						else if (fObjectID <= 1000) cColor.rgb = float3(1.0f, 0.0f, 0.0f);
-						else if (fObjectID <= 2000) cColor.rgb = float3(0.0f, 1.0f, 0.0f);
-						else if (fObjectID <= 3000) cColor.rgb = float3(0.0f, 0.0f, 1.0f);
-						else if (fObjectID <= 4000) cColor.rgb = float3(0.0f, 1.0f, 1.0f);
-						else if (fObjectID <= 5000) cColor.rgb = float3(1.0f, 1.0f, 0.0f);
-						else if (fObjectID <= 6000) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
-						else if (fObjectID <= 7000) cColor.rgb = float3(1.0f, 0.5f, 0.5f);
-						else cColor.rgb = float3(0.3f, 0.75f, 0.5f);
+			//			uint fObjectID = (uint)gtxtInputTextures[4][int2(input.position.xy)].r;
+			if (fObjectID == 0) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
+			else if (fObjectID <= 1000) cColor.rgb = float3(1.0f, 0.0f, 0.0f);
+			else if (fObjectID <= 2000) cColor.rgb = float3(0.0f, 1.0f, 0.0f);
+			else if (fObjectID <= 3000) cColor.rgb = float3(0.0f, 0.0f, 1.0f);
+			else if (fObjectID <= 4000) cColor.rgb = float3(0.0f, 1.0f, 1.0f);
+			else if (fObjectID <= 5000) cColor.rgb = float3(1.0f, 1.0f, 0.0f);
+			else if (fObjectID <= 6000) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
+			else if (fObjectID <= 7000) cColor.rgb = float3(1.0f, 0.5f, 0.5f);
+			else cColor.rgb = float3(0.3f, 0.75f, 0.5f);
 
-						//			cColor.rgb = fObjectID;
-									break;
-								}
-								case 69: //'E'
-								{
-									cColor = LaplacianEdge(input.position);
-									//			cColor = Outline(input);
-												break;
-											}
-										}
-										return(cColor);
+			//			cColor.rgb = fObjectID;
+			break;
+		}
+		case 69: //'E'
+		{
+			//cColor = LaplacianEdge(input.position);
+			cColor = Outline(input);
+			break;
+		}
+	}
+	return(cColor);
 }
 

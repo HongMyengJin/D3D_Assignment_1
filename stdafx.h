@@ -72,6 +72,14 @@ using Microsoft::WRL::ComPtr;
 #define SPRITE_MATRIX_PARAMETER 9 
 
 
+#define DRAW_SCENE_COLOR				'S'
+
+#define DRAW_SCENE_TEXTURE				'T'
+#define DRAW_SCENE_LIGHTING				'L'
+#define DRAW_SCENE_NORMAL				'N'
+#define DRAW_SCENE_Z_DEPTH				'Z'
+#define DRAW_SCENE_DEPTH				'D'
+
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")

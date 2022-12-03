@@ -569,7 +569,7 @@ void CObjectsShader::ReleaseUploadBuffers()
 	for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) m_ppObjects[j]->ReleaseUploadBuffers();
 }
 
-void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, int nPipelineState)
+void CObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
 	
 
@@ -726,7 +726,7 @@ void CSpriteObjectsShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D1
 	m_pd3dcbGameObjects->Map(0, NULL, (void**)&m_pcbMappedGameObjects);
 }
 
-void CSpriteObjectsShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
+void CSpriteObjectsShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, void* pContext)
 {
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 	for (int j = 0; j < m_nObjects; j++)
@@ -786,7 +786,7 @@ void CSpriteObjectsShader::ReleaseUploadBuffers()
 	}
 }
 
-void CSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
+void CSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
 	CTexturedShader::Render(pd3dCommandList, pCamera);
 
@@ -1024,7 +1024,7 @@ void CBillboardObjectsShader::ReleaseObjects()
 	CSpriteObjectsShader::ReleaseObjects();
 }
 
-void CBillboardObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
+void CBillboardObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
 	XMFLOAT3 xmf3CameraPosition = pCamera->GetPosition();
 	for (int j = 0; j < m_nObjects; j++)
@@ -1163,7 +1163,7 @@ void CMultiSpriteObjectsShader::ReleaseObjects()
 	CSpriteObjectsShader::ReleaseObjects();
 }
 
-void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
+void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
 	if (m_bActive)
 	{
@@ -1225,7 +1225,7 @@ D3D12_BLEND_DESC CPlayerShader::CreateBlendState()
 	::ZeroMemory(&d3dBlendDesc, sizeof(D3D12_BLEND_DESC));
 	d3dBlendDesc.AlphaToCoverageEnable = FALSE;
 	d3dBlendDesc.IndependentBlendEnable = FALSE;
-	d3dBlendDesc.RenderTarget[0].BlendEnable = TRUE;
+	d3dBlendDesc.RenderTarget[0].BlendEnable = FALSE;
 	d3dBlendDesc.RenderTarget[0].LogicOpEnable = FALSE;
 	d3dBlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 	d3dBlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
@@ -1523,7 +1523,7 @@ void CCubeShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12Graphics
 
 }
 
-void CCubeShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
+void CCubeShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList, void* pContext)
 {
 
 }
@@ -1680,7 +1680,7 @@ void CPostProcessingShader::OnPostRenderTarget(ID3D12GraphicsCommandList* pd3dCo
 {
 }
 
-void CPostProcessingShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, void* pContext)
+void CPostProcessingShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
 	CShader::Render(pd3dCommandList, pCamera, 0, pContext);
 
@@ -1807,7 +1807,7 @@ void CLaplacianEdgeShader::OnPostRenderTarget(ID3D12GraphicsCommandList* pd3dCom
 	}
 }
 
-void CLaplacianEdgeShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, void* pContext)
+void CLaplacianEdgeShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
-	CPostProcessingShader::Render(pd3dCommandList, pCamera, pContext);
+	CPostProcessingShader::Render(pd3dCommandList, pCamera, nPipelineState, pContext);
 }

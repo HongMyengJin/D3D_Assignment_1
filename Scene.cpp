@@ -454,6 +454,20 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	}
 }
 
+void CScene::OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
+
+	pCamera->SetViewportsAndScissorRects(pd3dCommandList);
+	pCamera->UpdateShaderVariables(pd3dCommandList);
+
+	UpdateShaderVariables(pd3dCommandList);
+
+	D3D12_GPU_VIRTUAL_ADDRESS d3dcbLightsGpuVirtualAddress = m_pd3dcbLights->GetGPUVirtualAddress();
+	pd3dCommandList->SetGraphicsRootConstantBufferView(2, d3dcbLightsGpuVirtualAddress); //Lights
+
+}
+
 void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, float fCurrentTime, float fElapsedTime)
 {
 	m_pPlayer->SetPlayerUpdatedContext(m_pTerrain);
@@ -474,15 +488,15 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	if (m_pSkyBox) m_pSkyBox->Render(pd3dCommandList, pCamera);
 
 	
-	//if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
-	//if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
+	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
+	if (m_pRippleWater) m_pRippleWater->Render(pd3dCommandList, pCamera);
 
 
-	//if (m_pPlayer) static_cast<CAirplanePlayer*>(m_pPlayer)->Bullet_Render(pd3dCommandList, pCamera);
-	//for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
-	//
+	if (m_pPlayer) static_cast<CAirplanePlayer*>(m_pPlayer)->Bullet_Render(pd3dCommandList, pCamera);
+	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
+	
 
-	//for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);
+	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);
 	//if (m_pPlayer) m_pPlayer->Render(pd3dCommandList, pCamera);
 
 
