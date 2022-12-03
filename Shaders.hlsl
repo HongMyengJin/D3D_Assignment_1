@@ -53,7 +53,7 @@ cbuffer cbDrawOptions : register(b5)
 #define MATERIAL_DETAIL_ALBEDO_MAP	0x20
 #define MATERIAL_DETAIL_NORMAL_MAP	0x40
 
-#define _WITH_STANDARD_TEXTURE_MULTIPLE_DESCRIPTORS
+//#define _WITH_STANDARD_TEXTURE_MULTIPLE_DESCRIPTORS
 
 #ifdef _WITH_STANDARD_TEXTURE_MULTIPLE_DESCRIPTORS
 Texture2D gtxtAlbedoTexture : register(t6);
@@ -376,6 +376,7 @@ float4 PSCube(VS_DIFFUSED_OUTPUT input) : SV_TARGET
 	return(input.color);
 }
 
+
 // PostProcessing
 ///////////////////////////////////////////////////////////////////////////////
 float4 VSPostProcessing(uint nVertexID : SV_VertexID) : SV_POSITION
@@ -439,7 +440,6 @@ float4 GetColorFromDepth(float fDepth)
 	return(cColor);
 }
 
-Texture2D gtxtInputTextures[7] : register(t1); //Color, NormalW, Texture, Illumination, ObjectID+zDepth, NormalV, Depth 
 
 static float gfLaplacians[9] = { -1.0f, -1.0f, -1.0f, -1.0f, 8.0f, -1.0f, -1.0f, -1.0f, -1.0f };
 static int2 gnOffsets[9] = { { -1,-1 }, { 0,-1 }, { 1,-1 }, { -1,0 }, { 0,0 }, { 1,0 }, { -1,1 }, { 0,1 }, { 1,1 } };
@@ -448,26 +448,26 @@ float4 LaplacianEdge(float4 position)
 {
 	float fObjectEdgeness = 0.0f, fNormalEdgeness = 0.0f, fDepthEdgeness = 0.0f;
 	float3 f3NormalEdgeness = float3(0.0f, 0.0f, 0.0f), f3DepthEdgeness = float3(0.0f, 0.0f, 0.0f);
-	if ((uint(position.x) >= 1) || (uint(position.y) >= 1) || (uint(position.x) <= gtxtInputTextures[0].Length.x - 2) || (uint(position.y) <= gtxtInputTextures[0].Length.y - 2))
+	if ((uint(position.x) >= 1) || (uint(position.y) >= 1) || (uint(position.x) <= gtxtStandardTextures[0].Length.x - 2) || (uint(position.y) <= gtxtStandardTextures[0].Length.y - 2))
 	{
-		float fObjectID = gtxtInputTextures[4][int2(position.xy)].r;
+		float fObjectID = gtxtStandardTextures[4][int2(position.xy)].r;
 		for (int input = 0; input < 9; input++)
 		{
-			//			if (fObjectID != gtxtInputTextures[4][int2(position.xy) + gnOffsets[input]].r) fObjectEdgeness = 1.0f;
+			//			if (fObjectID != gtxtStandardTextures[4][int2(position.xy) + gnOffsets[input]].r) fObjectEdgeness = 1.0f;
 
-			float3 f3Normal = gtxtInputTextures[1][int2(position.xy) + gnOffsets[input]].xyz * 2.0f - 1.0f;
-			float3 f3Depth = gtxtInputTextures[6][int2(position.xy) + gnOffsets[input]].xyz * 2.0f - 1.0f;
+			float3 f3Normal = gtxtStandardTextures[1][int2(position.xy) + gnOffsets[input]].xyz * 2.0f - 1.0f;
+			float3 f3Depth = gtxtStandardTextures[6][int2(position.xy) + gnOffsets[input]].xyz * 2.0f - 1.0f;
 			f3NormalEdgeness += gfLaplacians[input] * f3Normal;
 			f3DepthEdgeness += gfLaplacians[input] * f3Depth;
 		}
 		fNormalEdgeness = f3NormalEdgeness.r * 0.3f + f3NormalEdgeness.g * 0.59f + f3NormalEdgeness.b * 0.11f;
 		fDepthEdgeness = f3DepthEdgeness.r * 0.3f + f3DepthEdgeness.g * 0.59f + f3DepthEdgeness.b * 0.11f;
 	}
-	float3 cColor = gtxtInputTextures[0][int2(position.xy)].rgb;
+	float3 cColor = gtxtStandardTextures[0][int2(position.xy)].rgb;
 	/*
-		float fNdotV = 1.0f - dot(gtxtInputTextures[1][int2(position.xy)].xyz * 2.0f - 1.0f, gf3CameraDirection);
+		float fNdotV = 1.0f - dot(gtxtStandardTextures[1][int2(position.xy)].xyz * 2.0f - 1.0f, gf3CameraDirection);
 		float fNormalThreshold = (saturate((fNdotV - 0.5f) / (1.0f - 0.5f)) * 7.0f) + 1.0f;
-		float fDepthThreshold = 150.0f * gtxtInputTextures[6][int2(position.xy)].r * fNormalThreshold;
+		float fDepthThreshold = 150.0f * gtxtStandardTextures[6][int2(position.xy)].r * fNormalThreshold;
 	*/
 	if (fObjectEdgeness == 1.0f)
 		cColor = float3(1.0f, 0.0f, 0.0f);
@@ -495,20 +495,20 @@ float4 Outline(VS_SCREEN_RECT_TEXTURED_OUTPUT input)
 	float fHalfScaleFloor = floor(1.0f * 0.5f);
 	float fHalfScaleCeil = ceil(1.0f * 0.5f);
 
-	float2 f2BottomLeftUV = input.uv - float2((1.0f / gtxtInputTextures[0].Length.x), (1.0f / gtxtInputTextures[0].Length.y)) * fHalfScaleFloor;
-	float2 f2TopRightUV = input.uv + float2((1.0f / gtxtInputTextures[0].Length.x), (1.0f / gtxtInputTextures[0].Length.y)) * fHalfScaleCeil;
-	float2 f2BottomRightUV = input.uv + float2((1.0f / gtxtInputTextures[0].Length.x) * fHalfScaleCeil, -(1.0f / gtxtInputTextures[0].Length.y * fHalfScaleFloor));
-	float2 f2TopLeftUV = input.uv + float2(-(1.0f / gtxtInputTextures[0].Length.x) * fHalfScaleFloor, (1.0f / gtxtInputTextures[0].Length.y) * fHalfScaleCeil);
+	float2 f2BottomLeftUV = input.uv - float2((1.0f / gtxtStandardTextures[0].Length.x), (1.0f / gtxtStandardTextures[0].Length.y)) * fHalfScaleFloor;
+	float2 f2TopRightUV = input.uv + float2((1.0f / gtxtStandardTextures[0].Length.x), (1.0f / gtxtStandardTextures[0].Length.y)) * fHalfScaleCeil;
+	float2 f2BottomRightUV = input.uv + float2((1.0f / gtxtStandardTextures[0].Length.x) * fHalfScaleCeil, -(1.0f / gtxtStandardTextures[0].Length.y * fHalfScaleFloor));
+	float2 f2TopLeftUV = input.uv + float2(-(1.0f / gtxtStandardTextures[0].Length.x) * fHalfScaleFloor, (1.0f / gtxtStandardTextures[0].Length.y) * fHalfScaleCeil);
 
-	float3 f3NormalV0 = gtxtInputTextures[5].Sample(gssWrap, f2BottomLeftUV).rgb;
-	float3 f3NormalV1 = gtxtInputTextures[5].Sample(gssWrap, f2TopRightUV).rgb;
-	float3 f3NormalV2 = gtxtInputTextures[5].Sample(gssWrap, f2BottomRightUV).rgb;
-	float3 f3NormalV3 = gtxtInputTextures[5].Sample(gssWrap, f2TopLeftUV).rgb;
+	float3 f3NormalV0 = gtxtStandardTextures[5].Sample(gssWrap, f2BottomLeftUV).rgb;
+	float3 f3NormalV1 = gtxtStandardTextures[5].Sample(gssWrap, f2TopRightUV).rgb;
+	float3 f3NormalV2 = gtxtStandardTextures[5].Sample(gssWrap, f2BottomRightUV).rgb;
+	float3 f3NormalV3 = gtxtStandardTextures[5].Sample(gssWrap, f2TopLeftUV).rgb;
 
-	float fDepth0 = gtxtInputTextures[6].Sample(gssWrap, f2BottomLeftUV).r;
-	float fDepth1 = gtxtInputTextures[6].Sample(gssWrap, f2TopRightUV).r;
-	float fDepth2 = gtxtInputTextures[6].Sample(gssWrap, f2BottomRightUV).r;
-	float fDepth3 = gtxtInputTextures[6].Sample(gssWrap, f2TopLeftUV).r;
+	float fDepth0 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomLeftUV).r;
+	float fDepth1 = gtxtStandardTextures[6].Sample(gssWrap, f2TopRightUV).r;
+	float fDepth2 = gtxtStandardTextures[6].Sample(gssWrap, f2BottomRightUV).r;
+	float fDepth3 = gtxtStandardTextures[6].Sample(gssWrap, f2TopLeftUV).r;
 
 	float3 f3NormalV = f3NormalV0 * 2.0f - 1.0f;
 	float fNdotV = 1.0f - dot(f3NormalV, -input.viewSpaceDir);
@@ -531,7 +531,7 @@ float4 Outline(VS_SCREEN_RECT_TEXTURED_OUTPUT input)
 	float fEdge = max(fDdgeDepth, fEdgeNormal);
 	float4 f4EdgeColor = float4(1.0f, 1.0f, 1.0f, 1.0f * fEdge);
 
-	float4 f4Color = gtxtInputTextures[0].Sample(gssWrap, input.uv);
+	float4 f4Color = gtxtStandardTextures[0].Sample(gssWrap, input.uv);
 
 	return(AlphaBlend(f4EdgeColor, f4Color));
 }
@@ -544,35 +544,35 @@ float4 PSScreenRectSamplingTextured(VS_SCREEN_RECT_TEXTURED_OUTPUT input) : SV_T
 	{
 		case 84: //'T'
 		{
-			cColor = gtxtInputTextures[2].Sample(gssWrap, input.uv);
+			cColor = gtxtStandardTextures[2].Sample(gssWrap, input.uv);
 			break;
 		}
 		case 76: //'L'
 		{
-			cColor = gtxtInputTextures[3].Sample(gssWrap, input.uv);
+			cColor = gtxtStandardTextures[3].Sample(gssWrap, input.uv);
 			break;
 		}
 		case 78: //'N'
 		{
-			cColor = gtxtInputTextures[1].Sample(gssWrap, input.uv);
+			cColor = gtxtStandardTextures[1].Sample(gssWrap, input.uv);
 			break;
 		}
 		case 68: //'D'
 		{
-			float fDepth = gtxtInputTextures[6].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+			float fDepth = gtxtStandardTextures[6].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
 			cColor = GetColorFromDepth(1.0f - fDepth);
 			break;
 		}
 		case 90: //'Z' 
 		{
-			float fDepth = gtxtInputTextures[5].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+			float fDepth = gtxtStandardTextures[5].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
 			cColor = GetColorFromDepth(fDepth);
 			break;
 		}
 		case 79: //'O'
 		{
-			uint fObjectID = (uint)gtxtInputTextures[4].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
-			//			uint fObjectID = (uint)gtxtInputTextures[4][int2(input.position.xy)].r;
+			uint fObjectID = (uint)gtxtStandardTextures[4].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+			//			uint fObjectID = (uint)gtxtStandardTextures[4][int2(input.position.xy)].r;
 						if (fObjectID == 0) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
 						else if (fObjectID <= 1000) cColor.rgb = float3(1.0f, 0.0f, 0.0f);
 						else if (fObjectID <= 2000) cColor.rgb = float3(0.0f, 1.0f, 0.0f);

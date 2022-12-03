@@ -6,6 +6,8 @@
 #include "Shader.h"
 #include "Player.h"
 
+#define _WITH_SCENE_ROOT_SIGNATURE
+
 CShader::CShader()
 {
 	m_d3dSrvCPUDescriptorStartHandle.ptr = NULL;
@@ -197,9 +199,9 @@ void CShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 	m_d3dPipelineStateDesc.InputLayout = CreateInputLayout();
 	m_d3dPipelineStateDesc.SampleMask = UINT_MAX;
 	m_d3dPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	m_d3dPipelineStateDesc.NumRenderTargets = 1;
-	m_d3dPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	m_d3dPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	m_d3dPipelineStateDesc.NumRenderTargets = nRenderTargets;
+	for (UINT i = 0; i < nRenderTargets; i++) m_d3dPipelineStateDesc.RTVFormats[i] = (pdxgiRtvFormats) ? pdxgiRtvFormats[i] : DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_d3dPipelineStateDesc.DSVFormat = dxgiDsvFormat;
 	m_d3dPipelineStateDesc.SampleDesc.Count = 1;
 	m_d3dPipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
@@ -261,6 +263,27 @@ void CShader::CreateShaderResourceViews(ID3D12Device* pd3dDevice, CTexture* pTex
 	int nRootParameters = pTexture->GetRootParameters();
 	for (int i = 0; i < nRootParameters; i++) 
 		pTexture->SetRootParameterIndex(i, nRootParameterStartIndex + i);
+}
+
+void CShader::CreateShaderResourceViews(ID3D12Device* pd3dDevice, int nResources, ID3D12Resource** ppd3dResources, DXGI_FORMAT* pdxgiSrvFormats)
+{
+	for (int i = 0; i < nResources; i++)
+	{
+		if (ppd3dResources[i])
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC d3dShaderResourceViewDesc;
+			d3dShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			d3dShaderResourceViewDesc.Format = pdxgiSrvFormats[i];
+			d3dShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			d3dShaderResourceViewDesc.Texture2D.MipLevels = 1;
+			d3dShaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+			d3dShaderResourceViewDesc.Texture2D.PlaneSlice = 0;
+			d3dShaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+			pd3dDevice->CreateShaderResourceView(ppd3dResources[i], &d3dShaderResourceViewDesc, m_d3dSrvCPUDescriptorNextHandle);
+			m_d3dSrvCPUDescriptorNextHandle.ptr += ::gnCbvSrvDescriptorIncrementSize;
+			m_d3dSrvGPUDescriptorNextHandle.ptr += ::gnCbvSrvDescriptorIncrementSize;
+		}
+	}
 }
 
 void CShader::CreateShaderResourceView(ID3D12Device* pd3dDevice, CTexture* pTexture, int nIndex)
@@ -1487,7 +1510,7 @@ D3D12_INPUT_LAYOUT_DESC CCubeShader::CreateInputLayout()
 
 D3D12_SHADER_BYTECODE CCubeShader::CreateVertexShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSCube", "vs_5_1", &m_pd3dVertexShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSCube", "vs_5_1", &m_pd3dVertexShaderBlob)); 
 }
 
 D3D12_SHADER_BYTECODE CCubeShader::CreatePixelShader()
@@ -1611,18 +1634,21 @@ ID3D12RootSignature* CPostProcessingShader::CreateGraphicsRootSignature(ID3D12De
 	return(pd3dGraphicsRootSignature);
 }
 
-D3D12_SHADER_BYTECODE CPostProcessingShader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
+D3D12_SHADER_BYTECODE CPostProcessingShader::CreateVertexShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSPostProcessing", "vs_5_1", ppd3dShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSPostProcessing", "vs_5_1", &m_pd3dVertexShaderBlob));
 }
 
-D3D12_SHADER_BYTECODE CPostProcessingShader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
+D3D12_SHADER_BYTECODE CPostProcessingShader::CreatePixelShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSPostProcessing", "ps_5_1", ppd3dShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSPostProcessing", "ps_5_1", &m_pd3dPixelShaderBlob));
 }
 
 void CPostProcessingShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, UINT nRenderTargets, DXGI_FORMAT* pdxgiRtvFormats, DXGI_FORMAT dxgiDsvFormat)
 {
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+
 #ifdef _WITH_SCENE_ROOT_SIGNATURE
 	m_pd3dGraphicsRootSignature = pd3dGraphicsRootSignature;
 	m_pd3dGraphicsRootSignature->AddRef();
@@ -1666,14 +1692,14 @@ CLaplacianEdgeShader::~CLaplacianEdgeShader()
 	ReleaseShaderVariables();
 }
 
-D3D12_SHADER_BYTECODE CLaplacianEdgeShader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
+D3D12_SHADER_BYTECODE CLaplacianEdgeShader::CreateVertexShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSScreenRectSamplingTextured", "vs_5_1", ppd3dShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSScreenRectSamplingTextured", "vs_5_1", &m_pd3dVertexShaderBlob));
 }
 
-D3D12_SHADER_BYTECODE CLaplacianEdgeShader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
+D3D12_SHADER_BYTECODE CLaplacianEdgeShader::CreatePixelShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSScreenRectSamplingTextured", "ps_5_1", ppd3dShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSScreenRectSamplingTextured", "ps_5_1", &m_pd3dPixelShaderBlob));
 }
 
 void CLaplacianEdgeShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
@@ -1694,7 +1720,7 @@ void CLaplacianEdgeShader::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3d
 {
 	m_pcbMappedDrawOptions->m_xmn4DrawOptions.x = *((int*)pContext);
 	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbDrawOptions->GetGPUVirtualAddress();
-	pd3dCommandList->SetGraphicsRootConstantBufferView(7, d3dGpuVirtualAddress);
+	pd3dCommandList->SetGraphicsRootConstantBufferView(10, d3dGpuVirtualAddress);
 
 	CPostProcessingShader::UpdateShaderVariables(pd3dCommandList, pContext);
 }

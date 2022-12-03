@@ -59,6 +59,7 @@ private:
 
 	static const UINT			m_nSwapChainBuffers = 2;
 	UINT						m_nSwapChainBufferIndex;
+	D3D12_CPU_DESCRIPTOR_HANDLE		m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBuffers];
 
 	ID3D12Resource				*m_ppd3dSwapChainBackBuffers[m_nSwapChainBuffers];
 	ID3D12DescriptorHeap		*m_pd3dRtvDescriptorHeap = NULL;
@@ -84,8 +85,14 @@ private:
 	CPlayer						*m_pPlayer = NULL;
 	CCamera						*m_pCamera = NULL;
 
+	CLaplacianEdgeShader* m_pLaplacianEdgeDetectionShader = NULL;
+
+	int							m_nDrawOptions = 69;
+
 	POINT						m_ptOldCursorPos;
 
 	_TCHAR						m_pszFrameRate[70];
+
+
 };
 
