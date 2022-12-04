@@ -480,8 +480,8 @@ float4 LaplacianEdge(float4 position)
 		cColor = float3(1.0f, 0.0f, 0.0f);
 	else// =>
 	{
-		cColor.g += fNormalEdgeness * 100.f;
-		cColor.r += fDepthEdgeness * 100.f;
+		//cColor.g += fNormalEdgeness * 100.f;
+		cColor.g += fDepthEdgeness * 10000.f;
 		//		cColor.g += (fNormalEdgeness > fNormalThreshold) ? 1.0f : 0.0f;
 		//		cColor.r += (fDepthEdgeness > fDepthThreshold) ? 1.0f : 0.0f;
 	}
@@ -598,7 +598,7 @@ float4 PSScreenRectSamplingTextured(VS_SCREEN_RECT_TEXTURED_OUTPUT input) : SV_T
 			//cColor = gtxtStandardTextures[6].Sample(gssWrap, input.uv);
 			cColor = LaplacianEdge(input.position);
 			//cColor = Outline(input);
-			if (cColor.r <= 1.f)
+			if (cColor.g <= 1.f)
 				discard;
 			break;
 		}
