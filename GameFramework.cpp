@@ -34,7 +34,8 @@ CGameFramework::CGameFramework()
 	m_pScene = NULL;
 	m_pPlayer = NULL;
 
-	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
+	//_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
+	_tcscpy_s(m_pszCaption, _T("LabProject ("));
 }
 
 CGameFramework::~CGameFramework()
@@ -199,6 +200,7 @@ void CGameFramework::CreateRtvAndDsvDescriptorHeaps()
 	d3dDescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	d3dDescriptorHeapDesc.NodeMask = 0;
 	HRESULT hResult = m_pd3dDevice->CreateDescriptorHeap(&d3dDescriptorHeapDesc, __uuidof(ID3D12DescriptorHeap), (void **)&m_pd3dRtvDescriptorHeap);
+	m_nRtvDescriptorIncrementSize = m_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	d3dDescriptorHeapDesc.NumDescriptors = 1;
 	d3dDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -439,6 +441,7 @@ void CGameFramework::BuildObjects()
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
+	CreateShaderVariables();
 
 	m_pLaplacianEdgeDetectionShader = new CLaplacianEdgeShader();
 	m_pLaplacianEdgeDetectionShader->CreateShader(m_pd3dDevice, m_pd3dCommandList,m_pScene->GetGraphicsRootSignature(), 1, NULL, DXGI_FORMAT_D32_FLOAT);
@@ -468,6 +471,8 @@ void CGameFramework::BuildObjects()
 
 void CGameFramework::ReleaseObjects()
 {
+	ReleaseShaderVariables();
+
 	if (m_pPlayer) m_pPlayer->Release();
 
 	if (m_pScene) m_pScene->ReleaseObjects();
@@ -576,27 +581,58 @@ void CGameFramework::FrameAdvance()
 
 	::SynchronizeResourceTransition(m_pd3dCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	
+	//m_pd3dCommandList->ClearDepthStencilView(m_d3dDsvDescriptorCPUHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
+	D3D12_CPU_DESCRIPTOR_HANDLE d3dRtvCPUDescriptorHandle = m_pd3dRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	d3dRtvCPUDescriptorHandle.ptr += (m_nSwapChainBufferIndex * m_nRtvDescriptorIncrementSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE d3dDsvCPUDescriptorHandle = m_pd3dDsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	float pfClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle, pfClearColor/*Colors::Azure*/, 0, NULL);
+	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
+	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
+
 	m_pScene->OnPrepareRender(m_pd3dCommandList, m_pCamera);
-	// 정상 출력
-	if (m_nDrawOptions == DRAW_SCENE_COLOR) //'S'
-	{
-		m_pd3dCommandList->ClearDepthStencilView(m_d3dDsvDescriptorCPUHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 
-		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+	UpdateShaderVariables();
 
-		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera, m_GameTimer.GetTotalTime(), m_GameTimer.GetTimeElapsed());
+	m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
 
-		m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
-
-		m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+	//if (m_pScene)m_pScene->Render_Monster(m_pd3dCommandList, m_pCamera);
+	if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera, m_GameTimer.GetTotalTime(), m_GameTimer.GetTimeElapsed());
 
 
-		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+	m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
+	
 
-		m_pScene->OnPostRenderParticle();
-	}
-	else
-	{
+
+
+	m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+
+	m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+
+	m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
+	m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
+
+	//// 정상 출력
+	//if (m_nDrawOptions == DRAW_SCENE_COLOR) //'S'
+	//{
+	//	m_pd3dCommandList->ClearDepthStencilView(m_d3dDsvDescriptorCPUHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
+
+	//	m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+
+	//	if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera, m_GameTimer.GetTotalTime(), m_GameTimer.GetTimeElapsed());
+
+	//	m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+
+	//	m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+
+
+	//	m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
+
+	//}
+	//else
+	//{
 		//m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
 
 		//m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
@@ -607,21 +643,19 @@ void CGameFramework::FrameAdvance()
 
 		//m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
 
-		m_pd3dCommandList->ClearDepthStencilView(m_d3dDsvDescriptorCPUHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
+		
 
-		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
 
-		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera, m_GameTimer.GetTotalTime(), m_GameTimer.GetTimeElapsed());
+		
 
-		m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
 
-		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
 
-		m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
 
-		m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
-	}
+
+
+	//}
 	//
+
 
 	::SynchronizeResourceTransition(m_pd3dCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
@@ -629,6 +663,8 @@ void CGameFramework::FrameAdvance()
 	
 	ID3D12CommandList *ppd3dCommandLists[] = { m_pd3dCommandList };
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
+
+	m_pScene->OnPostRenderParticle();
 
 	WaitForGpuComplete();
 
@@ -650,17 +686,46 @@ void CGameFramework::FrameAdvance()
 //	m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
 	MoveToNextFrame();
 
-	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
-	size_t nLength = _tcslen(m_pszFrameRate);
-	XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
+	m_GameTimer.GetFrameRate(m_pszCaption + 12, 37);
+	//size_t nLength = _tcslen(m_pszFrameRate);
+	//XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
 
-	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
-	::SetWindowText(m_hWnd, m_pszFrameRate);
+	//_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
+	//::SetWindowText(m_hWnd, m_pszFrameRate);
+	size_t nLength = _tcslen(m_pszCaption);
+	XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
+	_stprintf_s(m_pszCaption + nLength, 100 - nLength, _T("(%5.1f, %5.1f, %5.1f) Particles = %d"), xmf3Position.x, xmf3Position.y, xmf3Position.z, ::gnCurrentParticles);
+
+	::SetWindowText(m_hWnd, m_pszCaption);
+}
+
+void CGameFramework::CreateShaderVariables()
+{
+	UINT ncbElementBytes = ((sizeof(CB_FRAMEWORK_INFO) + 255) & ~255); //256의 배수
+	m_pd3dcbFrameworkInfo = ::ParticleCreateBufferResource(m_pd3dDevice, m_pd3dCommandList, NULL, ncbElementBytes, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_GENERIC_READ, NULL);
+
+	m_pd3dcbFrameworkInfo->Map(0, NULL, (void**)&m_pcbMappedFrameworkInfo);
 }
 
 void CGameFramework::UpdateShaderVariables()
 {
+	m_pcbMappedFrameworkInfo->m_fCurrentTime = m_GameTimer.GetTotalTime();
+	m_pcbMappedFrameworkInfo->m_fElapsedTime = m_GameTimer.GetTimeElapsed();
+	m_pcbMappedFrameworkInfo->m_fSecondsPerFirework = 0.4f;
+	m_pcbMappedFrameworkInfo->m_nFlareParticlesToEmit = 100;
+	m_pcbMappedFrameworkInfo->m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
+	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 15 * 1.5f;
 
+	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbFrameworkInfo->GetGPUVirtualAddress();
+	m_pd3dCommandList->SetGraphicsRootConstantBufferView(FAMEWORKINFO_PARAMETER, d3dGpuVirtualAddress);
+}
 
+void CGameFramework::ReleaseShaderVariables()
+{
+	if (m_pd3dcbFrameworkInfo)
+	{
+		m_pd3dcbFrameworkInfo->Unmap(0, NULL);
+		m_pd3dcbFrameworkInfo->Release();
+	}
 }
 

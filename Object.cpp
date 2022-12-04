@@ -1540,9 +1540,8 @@ CParticleObject::CParticleObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommand
 	pShader->CreateConstantBufferViews(pd3dDevice, 1, m_pd3dcbGameObject, ((sizeof(XMFLOAT4X4) + 255) & ~255));
 
 	pShader->CreateShaderResourceViews(pd3dDevice, pParticleTexture, 0, PARTICLE_TEXTURE);
-	pShader->CreateShaderResourceViews(pd3dDevice, m_pRandowmValueTexture, 0, PARTICLE_TEXTURE);
-	pShader->CreateShaderResourceViews(pd3dDevice, m_pRandowmValueOnSphereTexture, 0, PARTICLE_TEXTURE);
-
+	pShader->CreateShaderResourceViews(pd3dDevice, m_pRandowmValueTexture, 0, PARTICLE_TEXTURE + 1);
+	pShader->CreateShaderResourceViews(pd3dDevice, m_pRandowmValueOnSphereTexture, 0, PARTICLE_TEXTURE + 2);
 
 
 	SetCbvGPUDescriptorHandle(pShader->GetGPUCbvDescriptorStartHandle());
@@ -1560,10 +1559,11 @@ CParticleObject::~CParticleObject()
 void CParticleObject::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	UINT ncbElementBytes = ((sizeof(XMFLOAT4X4) + 255) & ~255); //256ÀÇ ¹è¼ö
-	m_pd3dcbGameObject = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_GENERIC_READ, NULL);
+	m_pd3dcbGameObject = ::ParticleCreateBufferResource(pd3dDevice, pd3dCommandList, NULL, ncbElementBytes, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER | D3D12_RESOURCE_STATE_GENERIC_READ, NULL);
 
 	m_pd3dcbGameObject->Map(0, NULL, (void**)&m_pcbMappedGameObject);
 }
+
 
 void CParticleObject::ReleaseUploadBuffers()
 {
@@ -1586,7 +1586,7 @@ void CParticleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 		if (m_pRandowmValueOnSphereTexture) m_pRandowmValueOnSphereTexture->UpdateShaderVariables(pd3dCommandList);
 	}
 
-	UpdateShaderVariables(pd3dCommandList);
+	UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
 
 	for (int i = 0; i < m_nMeshes; i++) if (m_ppMeshes[i]) m_ppMeshes[i]->PreRender(pd3dCommandList, 0); //Stream Output
 	for (int i = 0; i < m_nMeshes; i++) if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, 0, 0); //Stream Output
@@ -1595,7 +1595,7 @@ void CParticleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 	if (m_ppMaterials && m_ppMaterials[0] && m_ppMaterials[0]->m_pShader) m_ppMaterials[0]->m_pShader->OnPrepareRender(pd3dCommandList, 1);
 
 	for (int i = 0; i < m_nMeshes; i++) if (m_ppMeshes[i]) m_ppMeshes[i]->PreRender(pd3dCommandList, 1); //Draw
-	for (int i = 0; i < m_nMeshes; i++) if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, 1, 0); //Draw
+	for (int i = 0; i < m_nMeshes; i++) if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, 0, 1); //Draw
 }
 
 void CParticleObject::OnPostRender()

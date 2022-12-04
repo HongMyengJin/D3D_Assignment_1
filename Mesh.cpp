@@ -1125,7 +1125,7 @@ void CParticleMesh::CreateStreamOutputBuffer(ID3D12Device* pd3dDevice, ID3D12Gra
 	pd3dDevice->CreateQueryHeap(&d3dQueryHeapDesc, __uuidof(ID3D12QueryHeap), (void**)&m_pd3dSOQueryHeap);
 
 	m_pd3dSOQueryBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, sizeof(D3D12_QUERY_DATA_SO_STATISTICS), D3D12_HEAP_TYPE_READBACK, D3D12_RESOURCE_STATE_COPY_DEST, NULL);
-#else
+#else // CreateTextureResource
 	m_pd3dReadBackBufferFilledSize = ::CreateBufferResource(pd3dDevice, pd3dCommandList, NULL, sizeof(UINT64), D3D12_HEAP_TYPE_READBACK, D3D12_RESOURCE_STATE_COPY_DEST, NULL);
 #endif
 }
@@ -1203,7 +1203,7 @@ void CParticleMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubS
 
 		pd3dCommandList->ResolveQueryData(m_pd3dSOQueryHeap, D3D12_QUERY_TYPE_SO_STATISTICS_STREAM0, 0, 1, m_pd3dSOQueryBuffer, 0);
 #else
-		CMesh::Render(pd3dCommandList, 0, 0); //Stream Output to m_pd3dStreamOutputBuffer
+		CMesh::Render(pd3dCommandList, nPipelineState, 0); //Stream Output to m_pd3dStreamOutputBuffer
 
 		::SynchronizeResourceTransition(pd3dCommandList, m_pd3dDefaultBufferFilledSize, D3D12_RESOURCE_STATE_STREAM_OUT, D3D12_RESOURCE_STATE_COPY_SOURCE);
 		pd3dCommandList->CopyResource(m_pd3dReadBackBufferFilledSize, m_pd3dDefaultBufferFilledSize);
@@ -1214,7 +1214,7 @@ void CParticleMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubS
 	{
 		pd3dCommandList->SOSetTargets(0, 1, NULL);
 
-		CMesh::Render(pd3dCommandList, 0, 0); //Render m_pd3dDrawBuffer 
+		CMesh::Render(pd3dCommandList, nPipelineState, 0); //Render m_pd3dDrawBuffer 
 	}
 }
 

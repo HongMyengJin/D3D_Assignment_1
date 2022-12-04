@@ -61,7 +61,7 @@ public:
     void AnimateObjects(float fTimeElapsed);
 	void OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, float fCurrentTime, float fElapsedTime);
-
+	void Render_Monster(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	void RenderParticle(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	void OnPostRenderParticle();
 

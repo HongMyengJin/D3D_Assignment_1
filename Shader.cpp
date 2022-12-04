@@ -331,7 +331,7 @@ void CShader::CreateShaderResourceViews(ID3D12Device* pd3dDevice, CTexture* pTex
 	m_d3dSrvGPUDescriptorNextHandle.ptr += (::gnCbvSrvDescriptorIncrementSize * nDescriptorHeapIndex);
 
 	int nTextures = pTexture->GetTextures();
-	UINT nTextureType = pTexture->GetTextureType();
+	UINT nTextureType = pTexture->GetTextureType(0);
 	for (int i = 0; i < nTextures; i++)
 	{
 		ID3D12Resource* pShaderResource = pTexture->GetResource(i);
