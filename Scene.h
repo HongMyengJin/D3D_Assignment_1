@@ -89,4 +89,8 @@ public:
 	LIGHTS								*m_pcbMappedLights = NULL;
 
 	CMultiSpriteObjectsShader			*m_pMultiSprite = NULL;
+
+
+	CParticleObject**					m_ppParticleObjects = NULL;
+	int									m_nParticleObjects = 0;
 };
