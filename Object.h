@@ -494,6 +494,8 @@ public:
 	CTexture* m_pRandowmValueTexture = NULL;
 	CTexture* m_pRandowmValueOnSphereTexture = NULL;
 
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+
 	void ReleaseUploadBuffers();
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);

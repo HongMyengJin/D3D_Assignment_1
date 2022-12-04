@@ -370,10 +370,10 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-struct PS_CB_DRAW_OPTIONS
-{
-	XMINT4							m_xmn4DrawOptions;
-};
+//struct PS_CB_DRAW_OPTIONS
+//{
+//	XMINT4							m_xmn4DrawOptions;
+//};
 
 class CLaplacianEdgeShader : public CPostProcessingShader
 {
@@ -395,9 +395,9 @@ public:
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState = 0, void* pContext = NULL);
 
-protected:
-	ID3D12Resource* m_pd3dcbDrawOptions = NULL;
-	PS_CB_DRAW_OPTIONS* m_pcbMappedDrawOptions = NULL;
+//protected:
+//	ID3D12Resource* m_pd3dcbDrawOptions = NULL;
+//	PS_CB_DRAW_OPTIONS* m_pcbMappedDrawOptions = NULL;
 };
 
 //////////////////////////////////////////////

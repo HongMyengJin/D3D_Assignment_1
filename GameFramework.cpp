@@ -588,7 +588,12 @@ void CGameFramework::FrameAdvance()
 
 		m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
 
+		m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+
+
 		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
+		m_pScene->OnPostRenderParticle();
 	}
 	else
 	{

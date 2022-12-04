@@ -39,11 +39,11 @@ cbuffer cbTextureInfo : register(b3)
 {
 	matrix		gmtxTexture : packoffset(c0); // 16
 };
-
-cbuffer cbDrawOptions : register(b5)
-{
-	int4 gvDrawOptions : packoffset(c0);
-};
+// 드로우 옵션 1개로 지정
+//cbuffer cbDrawOptions : register(b5)
+//{
+//	int4 gvDrawOptions : packoffset(c0);
+//};
 #include "Light.hlsl"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,8 +316,8 @@ float4 PSTerrain(VS_TERRAIN_OUTPUT input) : SV_TARGET
 }
 
 
-Texture2D gtxtWaterBaseTexture : register(t3);
-Texture2D gtxtWaterDetailTexture : register(t4);
+Texture2D gtxtWaterBaseTexture : register(t4);
+Texture2D gtxtWaterDetailTexture : register(t5);
 
 struct VS_WATER_INPUT
 {
@@ -562,62 +562,62 @@ float4 PSScreenRectSamplingTextured(VS_SCREEN_RECT_TEXTURED_OUTPUT input) : SV_T
 {
 	float4 cColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	switch (gvDrawOptions.x)
-	{
-		case 84: //'T'
-		{
-			cColor = gtxtStandardTextures[2].Sample(gWrapSamplerState, input.uv);
-			break;
-		}
-		case 76: //'L'
-		{
-			cColor = gtxtStandardTextures[3].Sample(gWrapSamplerState, input.uv);
-			break;
-		}
-		case 78: //'N'
-		{
-			cColor = gtxtStandardTextures[1].Sample(gWrapSamplerState, input.uv);
-			break;
-		}
-		case 68: //'D'
-		{
-			float fDepth = gtxtStandardTextures[6].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
-			cColor = GetColorFromDepth(1.0f - fDepth);
-			break;
-		}
-		case 90: //'Z' 
-		{
-			float fDepth = gtxtStandardTextures[5].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
-			cColor = GetColorFromDepth(fDepth);
-			break;
-		}
-		case 79: //'O'
-		{
-			uint fObjectID = (uint)gtxtStandardTextures[4].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
-			//			uint fObjectID = (uint)gtxtInputTextures[4][int2(input.position.xy)].r;
-			if (fObjectID == 0) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
-			else if (fObjectID <= 1000) cColor.rgb = float3(1.0f, 0.0f, 0.0f);
-			else if (fObjectID <= 2000) cColor.rgb = float3(0.0f, 1.0f, 0.0f);
-			else if (fObjectID <= 3000) cColor.rgb = float3(0.0f, 0.0f, 1.0f);
-			else if (fObjectID <= 4000) cColor.rgb = float3(0.0f, 1.0f, 1.0f);
-			else if (fObjectID <= 5000) cColor.rgb = float3(1.0f, 1.0f, 0.0f);
-			else if (fObjectID <= 6000) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
-			else if (fObjectID <= 7000) cColor.rgb = float3(1.0f, 0.5f, 0.5f);
-			else cColor.rgb = float3(0.3f, 0.75f, 0.5f);
+	//switch (gvDrawOptions.x)
+	//{
+	//	case 84: //'T'
+	//	{
+	//		cColor = gtxtStandardTextures[2].Sample(gWrapSamplerState, input.uv);
+	//		break;
+	//	}
+	//	case 76: //'L'
+	//	{
+	//		cColor = gtxtStandardTextures[3].Sample(gWrapSamplerState, input.uv);
+	//		break;
+	//	}
+	//	case 78: //'N'
+	//	{
+	//		cColor = gtxtStandardTextures[1].Sample(gWrapSamplerState, input.uv);
+	//		break;
+	//	}
+	//	case 68: //'D'
+	//	{
+	//		float fDepth = gtxtStandardTextures[6].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+	//		cColor = GetColorFromDepth(1.0f - fDepth);
+	//		break;
+	//	}
+	//	case 90: //'Z' 
+	//	{
+	//		float fDepth = gtxtStandardTextures[5].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+	//		cColor = GetColorFromDepth(fDepth);
+	//		break;
+	//	}
+	//	case 79: //'O'
+	//	{
+	//		uint fObjectID = (uint)gtxtStandardTextures[4].Load(uint3((uint)input.position.x, (uint)input.position.y, 0)).r;
+	//		//			uint fObjectID = (uint)gtxtInputTextures[4][int2(input.position.xy)].r;
+	//		if (fObjectID == 0) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
+	//		else if (fObjectID <= 1000) cColor.rgb = float3(1.0f, 0.0f, 0.0f);
+	//		else if (fObjectID <= 2000) cColor.rgb = float3(0.0f, 1.0f, 0.0f);
+	//		else if (fObjectID <= 3000) cColor.rgb = float3(0.0f, 0.0f, 1.0f);
+	//		else if (fObjectID <= 4000) cColor.rgb = float3(0.0f, 1.0f, 1.0f);
+	//		else if (fObjectID <= 5000) cColor.rgb = float3(1.0f, 1.0f, 0.0f);
+	//		else if (fObjectID <= 6000) cColor.rgb = float3(1.0f, 1.0f, 1.0f);
+	//		else if (fObjectID <= 7000) cColor.rgb = float3(1.0f, 0.5f, 0.5f);
+	//		else cColor.rgb = float3(0.3f, 0.75f, 0.5f);
 
-			//			cColor.rgb = fObjectID;
-			break;
-		}
-		case 69: //'E'
-		{
+	//		//			cColor.rgb = fObjectID;
+	//		break;
+	//	}
+		//case 69: //'E'
+		//{
 			//cColor = gtxtStandardTextures[6].Sample(gWrapSamplerState, input.uv);
 			cColor = LaplacianEdge(input.position);
 			//cColor = Outline(input);
 			if (cColor.g <= 1.f)
 				discard;
-			break;
-		}
-	}
+	//		break;
+	//	}
+	//}
 	return(cColor);
 }
 
