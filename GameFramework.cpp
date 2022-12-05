@@ -590,14 +590,36 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
 
 	m_pScene->OnPrepareRender(m_pd3dCommandList, m_pCamera);
+	if (m_nDrawOptions == DRAW_SCENE_COLOR) //'S'
+	{
+		UpdateShaderVariables();
 
-	UpdateShaderVariables();
+		//
+		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera);
+		if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
 
-	//
-	m_pScene->Render(m_pd3dCommandList, m_pCamera);
-	m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
-	m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+		if (m_pScene) m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
 
+		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+		
+	}
+	else
+	{
+		UpdateShaderVariables();
+
+		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera);
+
+		if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+
+		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
+		m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
+
+		m_pLaplacianEdgeDetectionShader->Render(m_pd3dCommandList, m_pCamera, 0, &m_nDrawOptions);
+
+	}
 	::SynchronizeResourceTransition(m_pd3dCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 	hResult = m_pd3dCommandList->Close();
