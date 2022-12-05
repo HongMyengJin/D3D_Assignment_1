@@ -24,6 +24,7 @@ cbuffer cbCameraInfo : register(b1)
 	matrix		gmtxProjection : packoffset(c4);
 	matrix		gmtxInverseView : packoffset(c8);
 	float3		gvCameraPosition : packoffset(c12);
+	matrix		gmtxInverseProjection : packoffset(c16);
 	//matrix		gmtxView : packoffset(c0);
 	//matrix		gmtxProjection : packoffset(c4);
 	//float3		gvCameraPosition : packoffset(c8);
@@ -441,7 +442,7 @@ VS_SCREEN_RECT_TEXTURED_OUTPUT VSScreenRectSamplingTextured(uint nVertexID : SV_
 	else if (nVertexID == 4) { output.position = float4(+1.0f, -1.0f, 0.0f, 1.0f); output.uv = float2(1.0f, 1.0f); }
 	else if (nVertexID == 5) { output.position = float4(-1.0f, -1.0f, 0.0f, 1.0f); output.uv = float2(0.0f, 1.0f); }
 
-	//output.viewSpaceDir = mul(output.position, gmtxInverseProjection).xyz;
+	output.viewSpaceDir = mul(output.position, gmtxInverseProjection).xyz;
 
 	return(output);
 }

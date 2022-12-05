@@ -594,6 +594,7 @@ void CGameFramework::FrameAdvance()
 	UpdateShaderVariables();
 
 	//
+	m_pScene->Render(m_pd3dCommandList, m_pCamera);
 	m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
 	m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
 
