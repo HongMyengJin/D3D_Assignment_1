@@ -46,8 +46,8 @@ struct CB_GAMEOBJECT_INFO
 	XMFLOAT4X4						m_xmf4x4Texture;
 	XMINT2							m_xmi2TextureTiling;
 	XMFLOAT2						m_xmf2TextureOffset;
+	UINT							m_nMaterial;
 };
-
 
 class CTexture
 {
@@ -101,6 +101,8 @@ public:
 	void LoadBuffer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pData, UINT nElements, UINT nStride, DXGI_FORMAT dxgiFormat, D3D12_HEAP_TYPE d3dHeapType, D3D12_RESOURCE_STATES d3dResourceStates, UINT nIndex);
 	void LoadBuffer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pData, UINT nElements, UINT nStride, DXGI_FORMAT ndxgiFormat, UINT nIndex);
 	ID3D12Resource* CreateTexture(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, UINT nIndex, UINT nResourceType, UINT nWidth, UINT nHeight, UINT nElements, UINT nMipLevels, DXGI_FORMAT dxgiFormat, D3D12_RESOURCE_FLAGS d3dResourceFlags, D3D12_RESOURCE_STATES d3dResourceStates, D3D12_CLEAR_VALUE* pd3dClearValue);
+	// 환경맵핑 텍스쳐 읽기 위한 함수
+	ID3D12Resource* CreateTexture(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, UINT nWidth, UINT nHeight, UINT nElements, UINT nMipLevels, DXGI_FORMAT dxgiFormat, D3D12_RESOURCE_FLAGS d3dResourceFlags, D3D12_RESOURCE_STATES d3dResourceStates, D3D12_CLEAR_VALUE* pd3dClearValue, UINT nResourceType, UINT nIndex);
 
 	int LoadTextureFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CGameObject* pParent, FILE* pInFile, CShader* pShader, UINT nIndex);
 
@@ -124,6 +126,8 @@ public:
 	void ReleaseUploadBuffers();
 
 	void Animate() { }
+	virtual void OnPrepareRender() { }
+	virtual void OnPreRender(ID3D12GraphicsCommandList* pd3dCommandList, class CScene* pScene, CCamera* pCamera = NULL) { }
 	bool AnimateRowColumn(float fTime = 0.0f);
 
 };
@@ -179,6 +183,16 @@ public:
 	float							m_fSpecularHighlight = 0.0f;
 	float							m_fMetallic = 0.0f;
 	float							m_fGlossyReflection = 0.0f;
+
+	// 환경 맵핑
+
+	XMFLOAT4						m_xmf4Albedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	UINT							m_nReflection = 0;
+	MATERIAL*						m_pReflection = NULL;
+
+	void							SetAlbedo(XMFLOAT4 xmf4Albedo) { m_xmf4Albedo = xmf4Albedo; }
+	void							SetReflection(UINT nReflection) { m_nReflection = nReflection; }
+	void							SetReflection(MATERIAL* m_pReflection);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,6 +251,7 @@ public:
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent=NULL);
 
 	virtual void OnPrepareRender() { }
+	virtual void OnPreRender(ID3D12GraphicsCommandList* pd3dCommandList, class CScene* pScene, class CCamera* pCamera = NULL) { }
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
 
 	virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
@@ -499,5 +514,25 @@ public:
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	virtual void OnPostRender();
+};
+
+
+// DynamicCubeMappingObject 추가
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+class CDynamicCubeMappingObject : public CGameObject
+{
+public:
+	CDynamicCubeMappingObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, LONG nCubeMapSize, D3D12_CPU_DESCRIPTOR_HANDLE d3dDsvCPUDescriptorHandle, D3D12_CPU_DESCRIPTOR_HANDLE d3dRtvCPUDescriptorHandle, CShader* pShader);
+	virtual ~CDynamicCubeMappingObject();
+
+	virtual void OnPreRender(ID3D12GraphicsCommandList* pd3dCommandList, class CScene* pScene, CCamera* pCamera = NULL);
+
+	class CCamera* m_ppCameras[6];
+
+	D3D12_CPU_DESCRIPTOR_HANDLE		m_pd3dRtvCPUDescriptorHandles[6];
+
+	ID3D12Resource*					m_pd3dDepthStencilBuffer = NULL;
+	D3D12_CPU_DESCRIPTOR_HANDLE		m_d3dDsvCPUDescriptorHandle;
 };
 

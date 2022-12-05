@@ -131,15 +131,19 @@ protected:
 	int								*m_pnSubSetIndices = NULL;
 	UINT							**m_ppnSubSetIndices = NULL;
 	UINT							m_nIndices = 0;
+	UINT							m_nStartIndex = 0;
+	int								m_nBaseVertex = 0;
 
 	ID3D12Resource					**m_ppd3dSubSetIndexBuffers = NULL;
 	ID3D12Resource					**m_ppd3dSubSetIndexUploadBuffers = NULL;
 	D3D12_INDEX_BUFFER_VIEW			*m_pd3dSubSetIndexBufferViews = NULL;
 
-
+	ID3D12Resource*					m_pd3dVertexBuffer = NULL;
+	ID3D12Resource*					m_pd3dVertexUploadBuffer = NULL;
 	ID3D12Resource					* m_pd3dIndexBuffer = NULL;
 	ID3D12Resource					* m_pd3dIndexUploadBuffer = NULL;
 	D3D12_INDEX_BUFFER_VIEW			m_pd3dIndexBufferView;
+	D3D12_VERTEX_BUFFER_VIEW		m_pd3dVertexBufferView;
 
 public:
 	virtual void PreRender(ID3D12GraphicsCommandList* pd3dCommandList, int nPipelineState) { }
@@ -249,8 +253,7 @@ protected:
 	ID3D12Resource* m_pd3dIndexBuffer = NULL;
 	ID3D12Resource* m_pd3dIndexUploadBuffer = NULL;
 
-	D3D12_VERTEX_BUFFER_VIEW		m_d3dVertexBufferView;
-	D3D12_INDEX_BUFFER_VIEW			m_d3dIndexBufferView;
+
 
 	D3D12_PRIMITIVE_TOPOLOGY		m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	UINT							m_nSlot = 0;
@@ -432,3 +435,56 @@ public:
 };
 
 // -------------------------------------------------------------------
+
+// 환경 맵핑 추가 중
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+//-----------------Vertex
+class CIlluminatedVertex : public CVertex
+{
+protected:
+	XMFLOAT3						m_xmf3Normal;
+
+public:
+	CIlluminatedVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f); }
+	CIlluminatedVertex(float x, float y, float z, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)) { m_xmf3Position = XMFLOAT3(x, y, z); m_xmf3Normal = xmf3Normal; }
+	CIlluminatedVertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)) { m_xmf3Position = xmf3Position; m_xmf3Normal = xmf3Normal; }
+	~CIlluminatedVertex() { }
+};
+
+class CIlluminatedTexturedVertex : public CIlluminatedVertex
+{
+protected:
+	XMFLOAT2						m_xmf2TexCoord;
+
+public:
+	CIlluminatedTexturedVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f); m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f); }
+	CIlluminatedTexturedVertex(float x, float y, float z, XMFLOAT2 xmf2TexCoord, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)) { m_xmf3Position = XMFLOAT3(x, y, z); m_xmf3Normal = xmf3Normal; m_xmf2TexCoord = xmf2TexCoord; }
+	CIlluminatedTexturedVertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f)) { m_xmf3Position = xmf3Position; m_xmf3Normal = xmf3Normal; m_xmf2TexCoord = xmf2TexCoord; }
+	~CIlluminatedTexturedVertex() { }
+};
+
+// Mesh
+class CMeshIlluminated : public CMesh
+{
+public:
+	CMeshIlluminated(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual ~CMeshIlluminated();
+
+public:
+	void CalculateTriangleListVertexNormals(XMFLOAT3* pxmf3Normals, XMFLOAT3* pxmf3Positions, int nVertices);
+	void CalculateTriangleListVertexNormals(XMFLOAT3* pxmf3Normals, XMFLOAT3* pxmf3Positions, UINT nVertices, UINT* pnIndices, UINT nIndices);
+	void CalculateTriangleStripVertexNormals(XMFLOAT3* pxmf3Normals, XMFLOAT3* pxmf3Positions, UINT nVertices, UINT* pnIndices, UINT nIndices);
+	void CalculateVertexNormals(XMFLOAT3* pxmf3Normals, XMFLOAT3* pxmf3Positions, int nVertices, UINT* pnIndices, int nIndices);
+};
+
+class CSphereMeshIlluminated : public CMeshIlluminated
+{
+public:
+	CSphereMeshIlluminated(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fRadius = 2.0f, UINT nSlices = 20, UINT nStacks = 20);
+	virtual ~CSphereMeshIlluminated();
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//

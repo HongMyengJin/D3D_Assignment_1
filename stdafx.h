@@ -71,6 +71,7 @@ using Microsoft::WRL::ComPtr;
 #define FAMEWORKINFO_PARAMETER	8
 #define SPRITE_MATRIX_PARAMETER 9 
 #define PARTICLE_TEXTURE	10
+#define MAPPING_CUBE_TEXTURE	13
 
 #define DRAW_SCENE_COLOR				'S'
 
