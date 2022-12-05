@@ -501,7 +501,7 @@ float4 LaplacianEdge(float4 position)
 	else// =>
 	{
 		//cColor.g += fNormalEdgeness * 100.f;
-		cColor.r = fDepthEdgeness * 1000.f;
+		cColor.r = fDepthEdgeness * 50000.f;
 				//cColor.g += (fNormalEdgeness > fNormalThreshold) ? 1.0f : 0.0f;
 				//cColor.r = (fDepthEdgeness > fDepthThreshold) ? 1.0f : 0.0f;
 	}
