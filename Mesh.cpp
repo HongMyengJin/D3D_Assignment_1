@@ -1095,7 +1095,13 @@ void CParticleMesh::CreateVertexBuffer(ID3D12Device* pd3dDevice, ID3D12GraphicsC
 	pVertices[0].m_xmf3Position = xmf3Position;
 	pVertices[0].m_xmf3Velocity = xmf3Velocity;
 	pVertices[0].m_fLifetime = fLifetime;
-	pVertices[0].m_nType = PARTICLE_TYPE_EMITTER;
+	pVertices[0].m_nType = PARTICLE_TYPE_SHELL;
+
+//#define PARTICLE_TYPE_EMITTER		0
+//#define PARTICLE_TYPE_SHELL			1
+//#define PARTICLE_TYPE_FLARE01		2
+//#define PARTICLE_TYPE_FLARE02		3
+//#define PARTICLE_TYPE_FLARE03		4
 
 	m_pd3dPositionBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dPositionUploadBuffer);
 

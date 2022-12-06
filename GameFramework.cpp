@@ -675,9 +675,9 @@ void CGameFramework::UpdateShaderVariables()
 	m_pcbMappedFrameworkInfo->m_fCurrentTime = m_GameTimer.GetTotalTime();
 	m_pcbMappedFrameworkInfo->m_fElapsedTime = m_GameTimer.GetTimeElapsed();
 	m_pcbMappedFrameworkInfo->m_fSecondsPerFirework = 0.4f;
-	m_pcbMappedFrameworkInfo->m_nFlareParticlesToEmit = 100;
+	m_pcbMappedFrameworkInfo->m_nFlareParticlesToEmit = 500;
 	m_pcbMappedFrameworkInfo->m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
-	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 15 * 1.5f;
+	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 35 * 1.5f;
 
 	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbFrameworkInfo->GetGPUVirtualAddress();
 	m_pd3dCommandList->SetGraphicsRootConstantBufferView(FAMEWORKINFO_PARAMETER, d3dGpuVirtualAddress);
