@@ -2186,7 +2186,12 @@ void CDynamicObjectsShader::ReleaseUploadBuffers()
 
 void CDynamicObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState, void* pContext)
 {
-	CTexturedShader::Render(pd3dCommandList, pCamera);
+	//CTexturedShader::Render(pd3dCommandList, pCamera);
+	if (m_pd3dGraphicsRootSignature) pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
+	if (m_ppd3dPipelineStates) pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]);
+	if (m_pd3dCbvSrvDescriptorHeap) pd3dCommandList->SetDescriptorHeaps(1, &m_pd3dCbvSrvDescriptorHeap);
+
+	UpdateShaderVariables(pd3dCommandList);
 
 #ifdef _WITH_BATCH_MATERIAL
 	if (m_pMaterial) m_pMaterial->UpdateShaderVariables(pd3dCommandList);
@@ -2307,14 +2312,14 @@ void CDynamicCubeMappingShader::ReleaseUploadBuffers()
 	CDynamicObjectsShader::ReleaseUploadBuffers();
 }
 
-void CDynamicCubeMappingShader::OnPreRender(ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, HANDLE hFenceEvent, CScene* pScene)
+void CDynamicCubeMappingShader::OnPreRender(ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, HANDLE hFenceEvent, CScene* pScene, CCamera* pCamera)
 {
 	for (int i = 0; i < m_nObjects; i++)
 	{
 		m_pd3dCommandAllocator->Reset();
 		m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 
-		m_ppObjects[i]->OnPreRender(m_pd3dCommandList, pScene);
+		m_ppObjects[i]->OnPreRender(m_pd3dCommandList, pScene, pCamera);
 
 		m_pd3dCommandList->Close();
 

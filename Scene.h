@@ -36,6 +36,11 @@ struct LIGHTS
 	XMFLOAT4				m_xmf4GlobalAmbient;
 	int						m_nLights;
 };
+// 거울 맵핑을 위한 코드
+//struct MATERIALS
+//{
+//	MATERIAL				m_pReflections[MAX_MATERIALS];
+//};
 
 class CScene
 {
@@ -51,7 +56,7 @@ public:
 	virtual void ReleaseShaderVariables();
 
 	void BuildDefaultLightsAndMaterials();
-	void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, MATERIALS* pMappedMaterials);
 	void ReleaseObjects();
 
 	ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
@@ -60,6 +65,7 @@ public:
 	bool ProcessInput(UCHAR *pKeysBuffer);
     void AnimateObjects(float fTimeElapsed);
 	void OnPrepareRender(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void OnPreRender(ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, HANDLE hFenceEvent, CCamera* pCamera);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	void Render_Monster(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 	void RenderParticle(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
@@ -93,7 +99,18 @@ public:
 
 	CMultiSpriteObjectsShader			*m_pMultiSprite = NULL;
 
-
+	// 파티클
 	CParticleObject**					m_ppParticleObjects = NULL;
 	int									m_nParticleObjects = 0;
+
+	// 환경 맵핑
+	CDynamicCubeMappingShader**			m_ppEnvironmentMappingShaders = NULL;
+	int									m_nEnvironmentMappingShaders = 0;
+
+	MATERIALS*							m_pMaterials = NULL;
+
+	//ID3D12Resource*						m_pd3dcbMaterials = NULL;
+	//MATERIAL*							mprotected:
+	//ID3D12Resource*						m_pd3dcbFrameworkInfo = NULL;
+	//CB_FRAMEWORK_INFO*					m_pcbMappedFrameworkInfo = NULL; 
 };

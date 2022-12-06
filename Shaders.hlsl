@@ -6,7 +6,7 @@ struct MATERIAL
 	float4					m_cEmissive;
 
 };
-
+#define MAX_MATERIALS	8
 cbuffer cbFrameworkInfo : register(b0)
 {
 	float		gfCurrentTime : packoffset(c0.x);
@@ -15,6 +15,7 @@ cbuffer cbFrameworkInfo : register(b0)
 	int			gnFlareParticlesToEmit : packoffset(c0.w);;
 	float3		gf3Gravity : packoffset(c1.x);
 	int			gnMaxFlareType2Particles : packoffset(c1.w);;
+	MATERIAL	gMaterials[MAX_MATERIALS] : packoffset(c2.x);;
 };
 
 
@@ -32,13 +33,17 @@ cbuffer cbCameraInfo : register(b1)
 	//matrix		gmtxInverseView : packoffset(c16);
 };
 
+
 cbuffer cbGameObjectInfo : register(b2)
 {
 	matrix		gmtxGameObject : packoffset(c0); // 16
 	MATERIAL	gMaterial : packoffset(c4); // 16
 	uint		gnTexturesMask : packoffset(c8); // 1
+	 // 환경 맵핑 위해 추가
+	uint		gnMaterialID : packoffset(c12);
 
 };
+
 
 cbuffer cbTextureInfo : register(b3)
 {
@@ -49,6 +54,15 @@ cbuffer cbTextureInfo : register(b3)
 //{
 //	int4 gvDrawOptions : packoffset(c0);
 //};
+
+
+
+//------------------
+//cbuffer cbMaterial : register(b6)
+//{
+//
+//};
+
 #include "Light.hlsl"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,12 +205,12 @@ VS_SKYBOX_CUBEMAP_OUTPUT VSSkyBox(VS_SKYBOX_CUBEMAP_INPUT input)
 	return(output);
 }
 
-TextureCube gtxtSkyCubeTexture : register(t13);
+TextureCube gtxtCubeTexture : register(t13);
 SamplerState gssClamp : register(s1);
 
 float4 PSSkyBox(VS_SKYBOX_CUBEMAP_OUTPUT input) : SV_TARGET
 {
-	float4 cColor = gtxtSkyCubeTexture.Sample(gssClamp, input.positionL);
+	float4 cColor = gtxtCubeTexture.Sample(gssClamp, input.positionL);
 
 	return(cColor);
 }
@@ -915,7 +929,7 @@ VS_LIGHTING_OUTPUT VSCubeMapping(VS_LIGHTING_INPUT input)
 	return(output);
 }
 
-TextureCube gtxtCubeMap : register(t16);
+//TextureCube gtxtCubeMap : register(t16);
 
 float4 PSCubeMapping(VS_LIGHTING_OUTPUT input) : SV_Target
 {
@@ -925,7 +939,7 @@ float4 PSCubeMapping(VS_LIGHTING_OUTPUT input) : SV_Target
 
 	float3 vFromCamera = normalize(input.positionW - gvCameraPosition.xyz);
 	float3 vReflected = normalize(reflect(vFromCamera, input.normalW));
-	float4 cCubeTextureColor = gtxtCubeMap.Sample(gWrapSamplerState, vReflected);
+	float4 cCubeTextureColor = gtxtCubeTexture.Sample(gWrapSamplerState, vReflected);
 
 	//	return(float4(vReflected * 0.5f + 0.5f, 1.0f));
 		return(cCubeTextureColor);

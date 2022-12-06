@@ -493,7 +493,7 @@ public:
 	virtual void ReleaseUploadBuffers();
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState = 0, void* pContext = NULL);
-	virtual void OnPreRender(ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, HANDLE hFenceEvent, class CScene* pScene);
+	virtual void OnPreRender(ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, HANDLE hFenceEvent, class CScene* pScene, CCamera* pCamera);
 
 protected:
 	ULONG							m_nCubeMapSize = 256;
@@ -503,4 +503,5 @@ protected:
 
 	ID3D12DescriptorHeap* m_pd3dRtvDescriptorHeap = NULL;
 	ID3D12DescriptorHeap* m_pd3dDsvDescriptorHeap = NULL;
+
 };

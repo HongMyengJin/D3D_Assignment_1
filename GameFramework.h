@@ -9,12 +9,14 @@
 
 struct CB_FRAMEWORK_INFO
 {
+	MATERIAL				gMaterials[MAX_MATERIALS];
 	float					m_fCurrentTime;
 	float					m_fElapsedTime;
 	float					m_fSecondsPerFirework = 1.0f;
 	int						m_nFlareParticlesToEmit = 30;
 	XMFLOAT3				m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
 	int						m_nMaxFlareType2Particles = 15;
+	
 };
 
 class CGameFramework
@@ -55,6 +57,7 @@ public:
 	void UpdateShaderVariables();
 	void ReleaseShaderVariables();
 
+	void ReleaseGameObject();
 private:
 	HINSTANCE					m_hInstance;
 	HWND						m_hWnd; 
@@ -108,7 +111,9 @@ private:
 	_TCHAR						m_pszCaption[100];
 
 protected:
-	ID3D12Resource*				m_pd3dcbFrameworkInfo = NULL;
-	CB_FRAMEWORK_INFO*			m_pcbMappedFrameworkInfo = NULL;
+	MATERIALS* m_pMaterials		= NULL;
+protected:
+	ID3D12Resource* m_pd3dcbFrameworkInfo = NULL;
+	CB_FRAMEWORK_INFO* m_pcbMappedFrameworkInfo = NULL;
 };
 

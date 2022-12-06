@@ -37,6 +37,11 @@ struct MATERIAL
 	XMFLOAT4						m_xmf4Emissive;
 };
 
+struct MATERIALS
+{
+	MATERIAL				m_pReflections[MAX_MATERIALS];
+};
+
 
 struct CB_GAMEOBJECT_INFO
 {
@@ -177,7 +182,7 @@ public:
 
 public:
 	UINT							m_nType = 0x00;
-
+	UINT							m_nMaterialID = 0x00;
 	float							m_fGlossiness = 0.0f;
 	float							m_fSmoothness = 0.0f;
 	float							m_fSpecularHighlight = 0.0f;
