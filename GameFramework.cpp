@@ -691,6 +691,7 @@ void CGameFramework::UpdateShaderVariables()
 	m_pcbMappedFrameworkInfo->m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
 	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 55 * 1.5f;
 
+
 	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbFrameworkInfo->GetGPUVirtualAddress();
 	m_pd3dCommandList->SetGraphicsRootConstantBufferView(FAMEWORKINFO_PARAMETER, d3dGpuVirtualAddress);
 }

@@ -67,11 +67,10 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
 
 	// -----------------------파티클 오브젝트-----------------------
-	m_nParticleObjects = 2;
+	m_nParticleObjects = 1;
 	m_ppParticleObjects = new CParticleObject * [m_nParticleObjects];
 
-	m_ppParticleObjects[0] = new CParticleObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, XMFLOAT3(1400.f, 3520.0f, 2500.f), XMFLOAT3(0.0f, -65.0f, 0.0f), 0.0f, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(18.0f, 18.0f), MAX_PARTICLES);
-	m_ppParticleObjects[1] = new CParticleObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, XMFLOAT3(1400.f, 5000.0f, 2500.f), XMFLOAT3(0.0f, -35.0f, 0.0f), 0.0f, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(18.0f, 18.0f), MAX_PARTICLES);
+	m_ppParticleObjects[0] = new CParticleObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 65.0f, 0.0f), 0.0f, XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(8.0f, 8.0f), MAX_PARTICLES);
 	// -------------------------------------------------------------
 
 	XMFLOAT3 xmf3WaterScale(1.0f, 1.0f, 1.0f);
