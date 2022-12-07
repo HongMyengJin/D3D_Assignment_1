@@ -590,7 +590,7 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
 
 	m_pScene->OnPrepareRender(m_pd3dCommandList, m_pCamera);
-	if (m_nDrawOptions == DRAW_SCENE_COLOR) //'S'
+	if (m_nDrawOptions != DRAW_SCENE_COLOR) //'S'
 	{
 		UpdateShaderVariables();
 
@@ -604,15 +604,27 @@ void CGameFramework::FrameAdvance()
 		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
 		
 	}
-	else
+	if (m_nDrawOptions == DRAW_SCENE_COLOR) //'S'
 	{
 		UpdateShaderVariables();
 
 		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
+		
+		//if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+
+		//if (m_pScene) m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+
+		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
+
+		m_pLaplacianEdgeDetectionShader->OnPrepareRenderTarget(m_pd3dCommandList, 1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], m_d3dDsvDescriptorCPUHandle);
 		if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera);
 
-		if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
+		
+		if (m_pScene) m_pScene->Render_Monster(m_pd3dCommandList, m_pCamera);
 
+		if (m_pScene) m_pScene->RenderParticle(m_pd3dCommandList, m_pCamera);
+
+		if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
 		m_pLaplacianEdgeDetectionShader->OnPostRenderTarget(m_pd3dCommandList);
 
 		m_pd3dCommandList->OMSetRenderTargets(1, &m_pd3dSwapChainBackBufferRTVCPUHandles[m_nSwapChainBufferIndex], TRUE, NULL);
@@ -675,9 +687,9 @@ void CGameFramework::UpdateShaderVariables()
 	m_pcbMappedFrameworkInfo->m_fCurrentTime = m_GameTimer.GetTotalTime();
 	m_pcbMappedFrameworkInfo->m_fElapsedTime = m_GameTimer.GetTimeElapsed();
 	m_pcbMappedFrameworkInfo->m_fSecondsPerFirework = 0.4f;
-	m_pcbMappedFrameworkInfo->m_nFlareParticlesToEmit = 500;
+	m_pcbMappedFrameworkInfo->m_nFlareParticlesToEmit = 1000;
 	m_pcbMappedFrameworkInfo->m_xmf3Gravity = XMFLOAT3(0.0f, -9.8f, 0.0f);
-	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 35 * 1.5f;
+	m_pcbMappedFrameworkInfo->m_nMaxFlareType2Particles = 55 * 1.5f;
 
 	D3D12_GPU_VIRTUAL_ADDRESS d3dGpuVirtualAddress = m_pd3dcbFrameworkInfo->GetGPUVirtualAddress();
 	m_pd3dCommandList->SetGraphicsRootConstantBufferView(FAMEWORKINFO_PARAMETER, d3dGpuVirtualAddress);

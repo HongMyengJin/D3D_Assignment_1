@@ -497,11 +497,11 @@ float4 LaplacianEdge(float4 position)
 		//float fDepthThreshold = 150.0f * gtxtStandardTextures[6][int2(position.xy)].r * fNormalThreshold;
 	
 	if (fObjectEdgeness == 1.0f)
-		cColor = float3(1.0f, 0.0f, 0.0f);
+		cColor = float3(0.0f, 1.0f, 0.0f);
 	else// =>
 	{
 		//cColor.g += fNormalEdgeness * 100.f;
-		cColor.r = fDepthEdgeness * 1000.f;
+		cColor.g = fDepthEdgeness * 50000.f;
 				//cColor.g += (fNormalEdgeness > fNormalThreshold) ? 1.0f : 0.0f;
 				//cColor.r = (fDepthEdgeness > fDepthThreshold) ? 1.0f : 0.0f;
 	}
@@ -618,7 +618,7 @@ float4 PSScreenRectSamplingTextured(VS_SCREEN_RECT_TEXTURED_OUTPUT input) : SV_T
 			//cColor = gtxtStandardTextures[6].Sample(gWrapSamplerState, input.uv);
 			cColor = LaplacianEdge(input.position);
 			//cColor = Outline(input);
-			if (cColor.r <= 1.f)
+			if (cColor.g <= 1.f)
 				discard;
 	//		break;
 	//	}
@@ -853,7 +853,7 @@ VS_PARTICLE_DRAW_OUTPUT VSParticleDraw(VS_PARTICLE_INPUT input)
 	VS_PARTICLE_DRAW_OUTPUT output = (VS_PARTICLE_DRAW_OUTPUT)0;
 
 	output.position = input.position;
-	output.size = 28.f;
+	output.size = 40.f;
 	output.type = input.type;
 
 	if (input.type == PARTICLE_TYPE_EMITTER) { output.color = float4(1.0f, 1.0f, 1.f, 1.0f); output.size = 3.0f; }
